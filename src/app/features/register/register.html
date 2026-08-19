@@ -1,0 +1,34 @@
+<div class="container">
+  <div class="register-card">
+    <div class="register-banner">
+      <img [ngSrc]="registerImagePath" width="648" height="364.5" alt="Man in deep focus" priority>
+      <div class="header d-flex flex-d-col align-i-center">
+        <h1 class="app-title">Focus<span>hub</span></h1>
+        <h2>Sign Up For Free</h2>
+      </div>
+    </div>
+    @if(errorMessage()){
+      <app-banner [severity]="errorSeverity()" [message]="errorMessage()" [variant]="Variant.Filled"/>
+    }
+    <div class="form-container">
+      <form [formGroup]="registrationForm" (ngSubmit)="onRegister()" >
+        <div class="d-flex flex-d-col gap-1">
+          <input type="email" formControlName="email" placeholder="Email" required>
+          <input type="password" formControlName="password" placeholder="Password" required>
+          <input type="password" formControlName="confirmPassword" placeholder="Confirm Password" required>
+        </div>
+      <ul class="mt-2">
+        <li [class.satisfied]="hasMinlength()">At least <span class="text-primary">eight</span> characters long.</li>
+        <li [class.satisfied]="hasUppercase()">At least <span class="text-primary">one</span> uppercase character (A-Z).</li>
+        <li [class.satisfied]="hasLowercase()">At least <span class="text-primary">one</span> lowercase character (a-z).</li>
+        <li [class.satisfied]="hasNumber()">At least <span class="text-primary">one</span> numeric character (0-1).</li>
+        <li [class.satisfied]="hasSpecial()">At least <span class="text-primary">one</span> special character (&#64;$!%*#?&).</li>
+        <li [class.satisfied]="isConfirmPasswordMatched()">Password and Confirm Password should match.</li>
+      </ul>
+        <button type="submit" class="btn my-2 font-bold" [disabled]="isLoading() || registrationForm.invalid || !isPasswordSecure()">{{isLoading()?'Registering...' : 'Sign Up'}}</button>
+      </form>
+      <p>Already have an account? <a class="text-primary font-bold" href="/login">Login</a> here</p>
+      <p>By signing up, you agree to the <span class="text-primary">Terms and Conditions</span> and <span class="text-primary">Privacy Notice, including <span class="text-primary">Cookie User</span>.</span></p>
+    </div>
+  </div>
+</div>

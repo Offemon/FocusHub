@@ -1,0 +1,13 @@
+:host{
+  display: block;
+  width: 100%;
+}
+
+.banner-box{
+  position: relative;
+  text-align: center;
+  width: 100%;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  border-radius: var(--def-b-rad);
+}

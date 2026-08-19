@@ -1,0 +1,78 @@
+<div class="task-detail-page-container">
+  <div class="task-page-upper-part">
+    @if(task(); as todo){
+        <div class="task-details-container">
+          <div class="task-screen">
+            <div class="controls-overlay">
+              <span class="percent-display">
+                {{Math.floor(progressPercent().valueOf())}}%
+              </span>
+            </div>
+            <span class="material-symbols-outlined">Task</span>
+            <div class="session-progress-bar-container">
+              <div class="session-progress-bar"
+                [style.width]="`${progressPercent()}%`">
+              </div>
+              <div class="session-progress-detail">
+                <app-icon-btn [materialIconName]="`${isClockRunning() ? GoogleIcons.Pause:GoogleIcons.PlayArrow}`" (onClick)="onToggleClock()"/>
+                <app-icon-btn [materialIconName]="GoogleIcons.ListAltCheck" (onClick)="markSessionComplete()"/>
+                <span>{{displayTime()}}</span>
+                <span>/</span>
+                <span>25:00</span>
+              </div>
+            </div>
+          </div>
+          <div class="task-title-container">
+            <h4>{{todo.title}}</h4>
+          </div>
+          <div class="task-details-actions-container">
+            <span>{{todo.completedPomodoros}} sessions | {{todo.createdAt | date}}</span>
+            <div class="actions-container d-flex flex-d-row gap-1">
+              <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()"/>
+              <app-pill-btn [btnIcon]="GoogleIcons.Delete" btnLabel="Delete Task" (onClick)="handleDeleteTask()"/>
+            </div>
+          </div>
+          <div class="task-details-description">
+              <p>{{todo.description}}</p>
+          </div>
+        </div>
+    }@else{
+      <div class="task-page-upper-part">
+        <div class="task-details-container">
+          <div class="task-screen">
+            <span class="material-symbols-outlined">Task</span>
+          </div>
+          <div class="task-title-container">
+            <h4>Task not found</h4>
+          </div>
+          <div class="task-details-actions-container">
+            <span>0 sessions | --/--/--</span>
+            <div class="actions-container d-flex flex-d-row gap-1">
+              <button disabled><span class="material-symbols-outlined">edit_document</span> Edit Task</button>
+              <button disabled>Finish Task</button>
+              <button disabled>Finish Session</button>
+            </div>
+          </div>
+          <div class="task-details-description">
+            <p>There are no task description to show. Invalid task id.</p>
+          </div>
+        </div>
+      </div>
+    }
+    <div class="side-todo-card-list">
+      @for(todo of todoService.allToDos().slice(0,2); track todo.id){
+        <app-todo-card [todoTaskItem]="todo" />
+      }
+    </div>
+  </div>
+  <div class="task-page-lower-part">
+    <div class="bottom-todo-card-container">
+      @for(todo of todoService.allToDos(); track todo.id){
+        <app-todo-card [todoTaskItem]="todo" />
+      }
+    </div>
+    <div class="todo-sessions-timeline">
+      asdfsd
+    </div>
+  </div>
+</div>

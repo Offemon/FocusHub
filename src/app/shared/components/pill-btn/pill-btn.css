@@ -1,0 +1,23 @@
+button.pill-btn{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--bg-dark);
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  padding: 1rem 2rem;
+  border-radius: 50rem;
+  cursor: pointer;
+  transition: background-color var(--trans-dur) ease-in-out;
+  &:hover{
+    background-color: var(--primary);
+    color: black;
+  }
+  &:disabled{
+    background-color: var(--bg-dark);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+  }
+}

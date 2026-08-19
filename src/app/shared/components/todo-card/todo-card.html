@@ -1,0 +1,32 @@
+@if(todoTaskItem(); as todo){
+  <article class="todo-card d-flex flex-d-col jcon-first align-i-center">
+    <div class="todo-thumbnail-container" [routerLink]="['/todos',todo.id]">
+      <i class="material-symbols-outlined text-center">task</i>
+      <span class="task-com-pom-count">{{todo.completedPomodoros}}</span>
+      <span class="task-est-pom-count">{{todo.estimatedPomodoros}}</span>
+    </div>
+    <div class="todo-card-details">
+      <div class="todo-card-text" [routerLink]="['/todos',todo.id]">
+        <h5 class="">
+          {{todo.title}}
+        </h5>
+        <p>{{todo.description}}</p>
+      </div>
+      <div class="more-context">
+        <span class="material-symbols-outlined" (click)="toggleContextPopup($event)">
+          more_vert
+        </span>
+        <div class="context-popup" [class.hidden]="isPopupHidden()">
+          <div class="context-entry" (click)="HandleEdit()">
+            <span class="material-symbols-outlined">edit</span>
+            <p>Edit</p>
+          </div>
+          <div class="context-entry" (click)="HandleDelete()">
+            <span class="material-symbols-outlined">delete</span>
+            <p>Delete</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+}

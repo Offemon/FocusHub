@@ -1,0 +1,22 @@
+<form [formGroup]="toDoForm" (ngSubmit)="onSubmit()">
+  <div class="form-input-section">
+    <label for="task-name">Task Name</label>
+    <input type="text" id="task-name" formControlName="title">
+  </div>
+  <div class="form-input-section">
+    <label for="task-desc">Task Description</label>
+    <textarea name="task-desc" id="task-desc" cols="30" rows="10" formControlName="description"></textarea>
+  </div>
+  <div class="form-input-section">
+    <label for="est-pom-sess-count">Estimated Pomodoro Sessions</label>
+    <input type="number" id="est-pom-sess-count" formControlName="estimatedPomodoros">
+  </div>
+  <div class="form-input-section">
+    <label for="due-date">Target Due Date</label>
+    <input type="date" id="due-date" formControlName="dueDate" [min]="minAvailableDate()" >
+  </div>
+  <div class="form-actions">
+    <button type="button" (click)="onCancel()">Close</button>
+    <button type="submit" [disabled]="toDoForm.invalid || isDataUnedited() || isProcessing()" >{{currentActionMode() === "CREATE" ? "Create" : "Modify"}}</button>
+  </div>
+</form>

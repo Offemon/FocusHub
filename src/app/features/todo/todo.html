@@ -1,0 +1,18 @@
+<div class="d-flex flex-d-row gap-2 align-i-center">
+  <h4>To-dos</h4>
+  <button class="font-bold" (click)="openTaskCreationDialog()">Create Task</button>
+</div>
+<div class="d-flex flex-d-row gap-2 mt-2">
+  <button type="button">All</button>
+  <button type="button">Active</button>
+  <button type="button">Completed</button>
+</div>
+<div id="todo-card-container">
+  @for(task of todoService.pendingToDos(); track task.id){
+    <app-todo-card [todoTaskItem]="task" />
+  }
+  @empty{
+    No tasks created
+  }
+
+</div>

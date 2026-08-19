@@ -1,0 +1,45 @@
+<div class="page-container">
+  <header>
+    <div id="top-links">
+      <ul>
+        <li>Fancentro</li>
+        <li>Wellness</li>
+        <li>Insights</li>
+        <li>Sites</li>
+        <li>Shop</li>
+        <li>Trust & Safety</li>
+        <li>EN</li>
+      </ul>
+    </div>
+    <nav>
+      <div class="container py-1 d-flex flex-d-col gap-1">
+        <div class="d-flex flex-d-row gap-2 align-i-center">
+          <h1 class="app-title">Focus<span>hub</span></h1>
+          <input type="text">
+          <a href="" class="ico-btn">
+            <i class="material-symbols-outlined">person</i>
+          </a>
+          <button type="button" (click)="purgeUserSession()">Log out</button>
+        </div>
+        <div>
+          <ul>
+            <li routerLinkActive="active-nav-item" [routerLinkActiveOptions]="{exact: true}"><a routerLink="/" class="">Home</a></li>
+            <li routerLinkActive="active-nav-item"><a routerLink="/todos" class="">Tasks</a></li>
+            <li routerLinkActive="active-nav-item"><a routerLink="/pomodoro" class="">Sessions</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <div class="container py-2">
+      <router-outlet/>
+    </div>
+  </main>
+  <footer>
+    <div class="container d-flex flex-d-row jcon-last gap-2 align-i-center">
+      <p>&copy; Focushub, {{currentYear}}</p>
+      <button class="btn">Notice to Users</button>
+    </div>
+  </footer>
+</div>

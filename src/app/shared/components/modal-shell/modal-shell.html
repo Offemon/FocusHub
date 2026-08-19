@@ -1,0 +1,11 @@
+<div class="modal-backdrop-scrim blur" (click)="onDismiss()">
+  <div class="modal-window-box" [class]="'width-'+'options().maxWidth'" (click)="$event.stopPropagation()">
+    <header class="modal-window-header d-flex jcon-s-between align-i-center">
+      <h3>{{options().title}}</h3>
+      <button class="close-x-btn" (click)="onCloseClick()">&#x2715;</button>
+    </header>
+    <div class="modal-window-body">
+      <ng-container #bodyTarget></ng-container>
+    </div>
+  </div>
+</div>

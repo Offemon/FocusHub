@@ -1,0 +1,21 @@
+<div class="container">
+  <div class="login-card">
+    <div class="d-flex flex-d-col gap-1 align-i-center">
+      <h1 class="app-title">Focus<span>hub</span></h1>
+      <h2>Member Log In</h2>
+      <p>Access your Focushub account</p>
+    </div>
+    @if(errorMessage()){
+      <app-banner [severity]="errorSeverity()" [message]="errorMessage()" [variant]="Variant.Filled"/>
+    }
+    <form [formGroup]="loginForm" (ngSubmit)="onAuthenticate()">
+      <div class="d-flex flex-d-col jcon-center my-2 gap-1">
+        <input type="text" formControlName="email" placeholder="Email">
+        <input type="password" formControlName="password" placeholder="Password">
+      </div>
+      <a href="#">Forgot password?</a>
+      <button type="submit" [disabled]="isLoading()" class="btn d-block my-2 font-bold">{{isLoading() ? 'Validating Claims...' : 'Log In'}}</button>
+    </form>
+    <p>Don't have an account yet? <a href="/register" class="text-primary font-bold">Sign up</a> here</p>
+  </div>
+</div>

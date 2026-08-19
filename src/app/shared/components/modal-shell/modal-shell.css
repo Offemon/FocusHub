@@ -1,0 +1,48 @@
+:host{
+  display: block;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+}
+.modal-backdrop-scrim{
+  width: 100vw;
+  height: 100dvh;
+  background-color: rgba(6,6,9,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fade-scrim 0.2s ease-out;
+}
+
+.modal-window-box{
+  width: 90%;
+  max-width: 550px;
+  background-color: var(--bg-darker);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+  animation: slide-up-window 0.25s cubic-bezier(0.1, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+.modal-window-header {
+  padding: 1.5rem 2.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.close-x-btn {
+  background: none; border: none; color: rgba(255,255,255,0.4); font-size: 1.6rem; cursor: pointer;
+  &:hover { color: #ff4d6d; }
+}
+
+.modal-window-body {
+  padding: 2.5rem;
+}
+
+/* Responsive Width Matrix Hooks */
+.width-sm { max-width: 400px; }
+.width-md { max-width: 550px; }
+.width-lg { max-width: 800px; }
+
+@keyframes fade-scrim { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slide-up-window { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
