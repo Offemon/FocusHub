@@ -12,7 +12,7 @@ export class ModalService {
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(EnvironmentInjector);
 
-  public show<T extends ModalChildComponentBase>(componentType: Type<T>, options: ModalOptions, payloadContainer?: IPayloadContainer): ModalReference {
+  public show<TData, TComp extends ModalChildComponentBase<TData>>(componentType: Type<TComp>, options: ModalOptions, payloadContainer?: IPayloadContainer<TData>): ModalReference {
     let resolveResult: (value: any) => void;
     const resultPromise = new Promise<any>((resolve) =>{
       resolveResult = resolve;

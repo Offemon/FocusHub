@@ -1,1 +1,8 @@
-<p>pomodoro works!</p>
+<div>
+  <h2>Quick start</h2>
+</div>
+<div class="tasks-container">
+  @for(todo of todoService.allToDos(); track todo.id){
+    <app-todo-card [todoTaskItem]="todo"/>
+  }
+</div>

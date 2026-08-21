@@ -20,6 +20,7 @@
             <i class="material-symbols-outlined">person</i>
           </a>
           <button type="button" (click)="purgeUserSession()">Log out</button>
+          <app-icon-btn [materialIconName]="GoogleIcons.PlayArrow" (onClick)="handleSnackBar()"/>
         </div>
         <div>
           <ul>
@@ -36,6 +37,7 @@
       <router-outlet/>
     </div>
   </main>
+  <app-snackbar/>
   <footer>
     <div class="container d-flex flex-d-row jcon-last gap-2 align-i-center">
       <p>&copy; Focushub, {{currentYear}}</p>

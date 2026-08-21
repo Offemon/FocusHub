@@ -1,0 +1,19 @@
+<aside class="global-view-port-container d-flex flex-d-col gap-1">
+  @for(snack of snackService.activeSnacks(); track snack.id){
+    <div
+      class="snack-card d-flex align-i-center jcon-s-between"
+      [className]="`snack-card d-flex align-i-center jcon-s-between `+ snack.type.toLowerCase()"
+    >
+      <div class="snack-content-wrapper d-flex align-i-center gap-1">
+        <span class="material-symbols-outlined status-icon">
+          @if(snack.type === SnackBarState.Info){{{GoogleIcons.Info}}}
+          @else if(snack.type === SnackBarState.Warning){{{GoogleIcons.Warning}}}
+          @else if(snack.type === SnackBarState.Error){{{GoogleIcons.Error}}}
+          @else if(snack.type === SnackBarState.Success){{{GoogleIcons.CheckCircle}}}
+        </span>
+        <p>{{snack.message}}</p>
+        <app-icon-btn [materialIconName]="GoogleIcons.CloseSmall" (onClick)="snackService.dismiss(snack.id)"/>
+      </div>
+    </div>
+  }
+</aside>

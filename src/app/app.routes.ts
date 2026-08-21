@@ -25,6 +25,10 @@ export const routes: Routes = [
         path: 'todos/:id',
         loadComponent: () => import('./features/todo/components/todo-details/todo-details').then((m) => m.TodoDetails),
         resolve: {cacheHydrated: todoResolver}
+      },
+      {
+        path: 'pomodoro/sessions',
+        loadComponent: () => import('./features/pomodoro/components/sessions/sessions').then((m) => m.Sessions)
       }
     ]
   },

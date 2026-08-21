@@ -127,7 +127,7 @@ export class TodoDetails {
       closeOnOverlayClick: false,
       maxWidth: "md"
     }
-    const payload: IPayloadContainer = { payload: currentTaskInstance };
+    const payload: IPayloadContainer<ToDoTaskDto> = { payload: currentTaskInstance };
     const dialog = this.modal.show(CreateTodoForm, modalOptions,payload);
     dialog.onResult.then((updatedTask: UpdateToDoTaskDetailsCommand) => {
       this.todoService.updateToDoTask(updatedTask, (response) => {
@@ -144,7 +144,6 @@ export class TodoDetails {
         console.log("Task Deleted");
         this.nav.navigate(["/todos"])
       }
-      console.log(response.errors);
     });
   }
 

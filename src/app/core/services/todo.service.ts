@@ -87,6 +87,23 @@ export class TodoService {
       },
     });
   }
+  public tagToDoTaskComplete(taskId: string, onResult: (response: ApiResponse)=>void): void{
+    this.http.put<void>(`/tasks/${taskId}/complete`, {}).subscribe({
+      next: () => {
+        this.todoListState.update((todoList)=>
+          todoList.map(todo => todo.id === taskId ? {...todo, isCompleted: true, updatedAt: new Date().toISOString()}: todo)
+        );
+        onResult({isSuccess: true});
+      },
+      error: (err) => {
+        const serverErrors = err.error?.errors || [err.message || "Unknown infrastructure error."]
+        onResult({
+          isSuccess: false,
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
+        });
+      }
+    });
+  }
   public fetchTaskById(taskId: string): Observable<ToDoTaskDto> {
     return this.http.get<ToDoTaskDto>(`/tasks/${taskId}`);
   }
