@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&family=Jura:wght@300..700&family=Monda:wght@400..700&family=Pixelify+Sans:wght@400..700&family=Press+Start+2P&display=swap');
+
 :root{
   --primary: #ff9900;
   --bg-dark: #0e0e0e;
@@ -7,11 +9,11 @@
   --text-secondary: #969696;
   --icon-color: #c6c6c6;
   --input-bg: #252525;
-  --color-fatal: #E53935;
-  --color-error: #FB8C00;
-  --color-warning: #FDD835;
-  --color-success: #66BB6A;
-  --color-info: #2196F3;
+  --color-fatal: #FF3838;
+  --color-error: #FFB302;
+  --color-warning: #FCE83A;
+  --color-success: #56F000;
+  --color-info: #2DCCFF;
   --def-b-rad: 0.25rem;
   --trans-dur: 0.1s;
 
@@ -27,7 +29,7 @@ html{
   scroll-behavior: smooth;
   color: var(--text-primary);
   font-size: 62.5%;
-  font-family: "Arial", sans-erif;
+  font-family: "Arial", sans-serif;
 }
 body{
   background-color: var(--bg-darker);

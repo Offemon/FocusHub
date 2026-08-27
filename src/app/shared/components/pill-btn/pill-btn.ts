@@ -10,6 +10,7 @@ import { MaterialIcons } from '../../../core/models/google.material.icons';
 export class PillBtn {
   public btnIcon = input.required<MaterialIcons>();
   public btnLabel = input.required<string>();
+  public disabled = input<boolean>(false);
 
   public onClick = output<MouseEvent>();
 

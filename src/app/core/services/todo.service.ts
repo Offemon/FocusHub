@@ -1,6 +1,7 @@
 import { computed, inject, Service, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
+  CompleteToDoTaskWithSessionCommand,
   CreateToDoTaskCommand,
   DeleteToDoTaskCommand,
   ToDoTaskDto,
@@ -29,7 +30,15 @@ export class TodoService {
       error: (err) => console.error('failed to stream PostgreSQL task registres:', err),
     });
   }
-
+  public pendingToDosExcept(taskId: string): ToDoTaskDto[]{
+    return this.allToDos()
+      .filter(t => !t.isCompleted && t.id !== taskId)
+      .sort((a, b) => {
+      const dateA = a.dueDate ?? "9999-12-31";
+      const dateB = b.dueDate ?? '9999-12-31';
+      return dateA.localeCompare(dateB);
+    });
+  }
   public createToDoTask(request: CreateToDoTaskCommand): void {
     this.http.post<ToDoTaskDto>('/tasks', request).subscribe({
       next: (toDoTask) => {
@@ -40,31 +49,51 @@ export class TodoService {
       },
     });
   }
+
+  public incrementSessionCount(taskId: string): void {
+    this.todoListState.update((todoList) =>
+      todoList.map((task) => {
+        if (task.id === taskId) {
+          return {
+            ...task,
+            completedPomodoros: task.completedPomodoros + 1,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return task;
+      }),
+    );
+  }
   public deleteToDoTask(taskId: string | null, onResult: (response: ApiResponse) => void): void {
-    if(!taskId) return;
+    if (!taskId) return;
     this.http.delete<void>(`/tasks/${taskId}`).subscribe({
       next: () => {
         this.todoListState.update((currentCache) =>
           currentCache.filter((task) => task.id !== taskId),
         );
-        onResult({isSuccess: true});
+        onResult({ isSuccess: true });
       },
       error: (error) => {
-        const serverErrors = error.error?.errors || [error.message || "Unknown infrastructure error."];
+        const serverErrors = error.error?.errors || [
+          error.message || 'Unknown infrastructure error.',
+        ];
         onResult({
           isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors: [String(serverErrors)]
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
         });
       },
     });
   }
-  public updateToDoTask(request: UpdateToDoTaskDetailsCommand | null, onResult: (response: ApiResponse) => void): void{
+  public updateToDoTask(
+    request: UpdateToDoTaskDetailsCommand | null,
+    onResult: (response: ApiResponse) => void,
+  ): void {
     if (!request) return;
     this.http.put<void>(`/tasks/${request.taskId}`, request).subscribe({
       next: () => {
         this.todoListState.update((todoList) =>
           todoList.map((task) => {
-            if(task.id === request.taskId){
+            if (task.id === request.taskId) {
               return {
                 ...task,
                 title: request.title,
@@ -74,41 +103,76 @@ export class TodoService {
               };
             }
             return task;
-          })
+          }),
         );
-        onResult({isSuccess: true});
+        onResult({ isSuccess: true });
       },
       error: (err) => {
-        const serverErrors = err.error?.errors || [err.message || "Unknown infrastructure error."]
+        const serverErrors = err.error?.errors || [err.message || 'Unknown infrastructure error.'];
         onResult({
           isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
-        })
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
+        });
       },
     });
   }
-  public tagToDoTaskComplete(taskId: string, onResult: (response: ApiResponse)=>void): void{
+  public tagToDoTaskComplete(taskId: string, onResult: (response: ApiResponse) => void): void {
     this.http.put<void>(`/tasks/${taskId}/complete`, {}).subscribe({
       next: () => {
-        this.todoListState.update((todoList)=>
-          todoList.map(todo => todo.id === taskId ? {...todo, isCompleted: true, updatedAt: new Date().toISOString()}: todo)
+        this.todoListState.update((todoList) =>
+          todoList.map((todo) =>
+            todo.id === taskId
+              ? { ...todo, isCompleted: true, updatedAt: new Date().toISOString() }
+              : todo,
+          ),
         );
-        onResult({isSuccess: true});
+        onResult({ isSuccess: true });
       },
       error: (err) => {
-        const serverErrors = err.error?.errors || [err.message || "Unknown infrastructure error."]
+        const serverErrors = err.error?.errors || [err.message || 'Unknown infrastructure error.'];
         onResult({
           isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
         });
-      }
+      },
+    });
+  }
+  public tagToDoTaskWithSessionComplete(
+    taskId: string,
+    sessionDurationMinutes: number,
+    onResult: (response: ApiResponse) => void,
+  ): void {
+    const command: CompleteToDoTaskWithSessionCommand = { durationMinutes: sessionDurationMinutes };
+    this.http.put<void>(`/tasks/${taskId}/complete-with-session`, command).subscribe({
+      next: () => {
+        this.todoListState.update((todoList) =>
+          todoList.map((task) => {
+            if (task.id === taskId) {
+              return {
+                ...task,
+                isCompleted: true,
+                completedPomodoros: task.completedPomodoros + 1,
+              };
+            }
+            return task;
+          }),
+        );
+        onResult({ isSuccess: true });
+      },
+      error: (err) => {
+        const serverErrors = err.error?.error || [err.message || 'Unknown infrastructure error.'];
+        onResult({
+          isSuccess: false,
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
+        });
+      },
     });
   }
   public fetchTaskById(taskId: string): Observable<ToDoTaskDto> {
     return this.http.get<ToDoTaskDto>(`/tasks/${taskId}`);
   }
   public fetchAllTasksStream(): Observable<ToDoTaskDto[]> {
-    return this.http.get<ToDoTaskDto[]>('/tasks/active').pipe(
+    return this.http.get<ToDoTaskDto[]>('/tasks').pipe(
       tap((tasksFromDb) => {
         this.todoListState.set(tasksFromDb);
       }),

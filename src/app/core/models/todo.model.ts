@@ -29,3 +29,7 @@ export interface UpdateToDoTaskDetailsCommand{
   estimatedPomodoros: number;
   dueDate: string | null;
 }
+
+export interface CompleteToDoTaskWithSessionCommand {
+  durationMinutes: number;
+}

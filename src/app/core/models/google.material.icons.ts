@@ -1,6 +1,11 @@
 export const GoogleIcons = {
   Edit: "edit_document",
+  History: "history",
+  Timeline: "timeline",
+  HourglassEmpty: "hourglass_empty",
   Person: "person",
+  Celebration: "celebration",
+  NoteAdd: "note_add",
   Task: "task",
   MoreVert: "more_vert",
   MoreHoriz: "more_horiz",
@@ -14,7 +19,14 @@ export const GoogleIcons = {
   CheckCircle: "check_circle",
   Error: "cancel",
   Info: "info",
-  Warning: "warning"
+  Warning: "warning",
+  Pending: "pending",
+  ClockLoader10: "clock_loader_10",
+  ClockLoader20: "clock_loader_20",
+  ClockLoader40: "clock_loader_40",
+  ClockLoader60: "clock_loader_60",
+  ClockLoader80: "clock_loader_80",
+  ClockLoader90: "clock_loader_90",
 } as const;
 
 export type MaterialIcons = typeof GoogleIcons[keyof typeof GoogleIcons];

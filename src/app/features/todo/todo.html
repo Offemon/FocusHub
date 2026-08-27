@@ -7,12 +7,11 @@
   <button type="button">Active</button>
   <button type="button">Completed</button>
 </div>
-<div id="todo-card-container">
-  @for(task of todoService.pendingToDos(); track task.id){
+<app-todo-card-grid>
+  @for(task of todoService.allToDos(); track task.id){
     <app-todo-card [todoTaskItem]="task" />
   }
   @empty{
     No tasks created
   }
-
-</div>
+</app-todo-card-grid>

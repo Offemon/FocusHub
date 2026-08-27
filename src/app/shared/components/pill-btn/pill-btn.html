@@ -1,4 +1,4 @@
-<button class="pill-btn" (click)="HandleClick($event)">
+<button class="pill-btn" (click)="HandleClick($event)" [disabled]="disabled()">
   <span class="material-symbols-outlined" >{{ btnIcon() }}</span>
   {{btnLabel()}}
 </button>

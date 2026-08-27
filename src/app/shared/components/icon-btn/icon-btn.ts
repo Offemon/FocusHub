@@ -10,6 +10,7 @@ import { GoogleIcons, MaterialIcons } from '../../../core/models/google.material
 export class IconBtn {
   public materialIconName = input.required<MaterialIcons>();
   public btnAriaLabel = input<string>("Action Trigger");
+  public disabled = input<boolean>(false);
 
   public onClick = output<MouseEvent>();
 

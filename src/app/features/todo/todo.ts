@@ -5,11 +5,12 @@ import { CreateToDoTaskCommand } from '../../core/models/todo.model';
 import { TodoService } from '../../core/services/todo.service';
 import { RouterLink } from '@angular/router';
 import { TodoCard } from '../../shared/components/todo-card/todo-card';
+import { TodoCardGrid } from '../../shared/components/todo-card-grid/todo-card-grid';
 
 
 @Component({
   selector: 'app-todo',
-  imports: [RouterLink, TodoCard],
+  imports: [TodoCard, TodoCardGrid],
   templateUrl: './todo.html',
   styleUrl: './todo.css',
 })
@@ -18,7 +19,7 @@ export class Todo {
   protected readonly todoService = inject(TodoService);
 
   ngOnInit() {
-    console.log(this.todoService.allToDos().length)
+    console.log(this.todoService.allToDos().length);
   }
   public openTaskCreationDialog(): void {
     const dialog = this.modalService.show(CreateTodoForm, {

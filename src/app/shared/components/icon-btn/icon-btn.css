@@ -5,7 +5,10 @@ button{
   .material-symbols-outlined{
     font-size: 3rem;
   }
-  &:hover{
-    color: unset;
+  &:enabled:hover{
+    color: var(--primary);
+  }
+  &:disabled:hover{
+    color: var(--color-fatal);
   }
 }

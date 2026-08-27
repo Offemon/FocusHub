@@ -2,6 +2,54 @@
   <article class="todo-card d-flex flex-d-col jcon-first align-i-center">
     <div class="todo-thumbnail-container" [routerLink]="['/todos',todo.id]">
       <i class="material-symbols-outlined text-center">task</i>
+      @if(todo.isCompleted){
+        <span class="task-status completed">
+          <span class="material-symbols-outlined">{{GoogleIcons.CheckCircle}}</span>
+          Completed
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100) === 0){
+        <span class="task-status pending">
+          <span class="material-symbols-outlined">{{GoogleIcons.Pending}}</span>
+          Pending
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=10){
+        <span class="task-status ongoing">
+          <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader10}}</span>
+          Ongoing
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=20){
+        <span class="task-status ongoing">
+          <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader20}}</span>
+          Ongoing
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=40){
+        <span class="task-status ongoing">
+          <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader40}}</span>
+          Ongoing
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=60){
+        <span class="task-status ongoing">
+          <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader60}}</span>
+          Ongoing
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=80){
+        <span class="task-status ongoing">
+          <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader80}}</span>
+          Ongoing
+        </span>
+      }
+      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=90){
+        <span class="task-status ongoing">
+          <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader90}}</span>
+          Ongoing
+        </span>
+      }
       <span class="task-com-pom-count">{{todo.completedPomodoros}}</span>
       <span class="task-est-pom-count">{{todo.estimatedPomodoros}}</span>
     </div>
@@ -12,21 +60,23 @@
         </h5>
         <p>{{todo.description}}</p>
       </div>
-      <div class="more-context">
-        <span class="material-symbols-outlined" (click)="toggleContextPopup($event)">
-          more_vert
-        </span>
-        <div class="context-popup" [class.hidden]="isPopupHidden()">
-          <div class="context-entry" (click)="HandleEdit()">
-            <span class="material-symbols-outlined">edit</span>
-            <p>Edit</p>
-          </div>
-          <div class="context-entry" (click)="HandleDelete()">
-            <span class="material-symbols-outlined">delete</span>
-            <p>Delete</p>
+      @if(!todo.isCompleted){
+        <div class="more-context">
+          <span class="material-symbols-outlined" (click)="toggleContextPopup($event)">
+            more_vert
+          </span>
+          <div class="context-popup" [class.hidden]="isPopupHidden()">
+            <div class="context-entry" (click)="HandleEdit()">
+              <span class="material-symbols-outlined">edit</span>
+              <p>Edit</p>
+            </div>
+            <div class="context-entry" (click)="HandleDelete()">
+              <span class="material-symbols-outlined">delete</span>
+              <p>Delete</p>
+            </div>
           </div>
         </div>
-      </div>
+      }
     </div>
   </article>
 }

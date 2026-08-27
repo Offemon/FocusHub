@@ -15,6 +15,34 @@
     .material-symbols-outlined{
       font-size: 10rem;
     }
+    .task-status{
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center ;
+      gap: 0.5rem;
+      position: absolute;
+      top: 0;
+      left: 0;
+      padding: 0.5rem 1rem;
+      font-size: 1.25rem;
+      .material-symbols-outlined{
+        font-size: 2rem;
+      }
+    }
+    .task-status.completed{
+      color: var(--color-success);
+      border: 1px solid var(--color-success);
+    }
+    .task-status.ongoing{
+      color: var(--color-warning);
+      border: 1px solid var(--color-warning);
+    }
+    .task-status.pending{
+      color: var(--color-info);
+      border: 1px solid var(--color-info);
+    }
+
     .task-com-pom-count,.task-est-pom-count{
       display: block;
       width: fit-content;

@@ -3,29 +3,32 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from './auth';
 import { LogPomodoroSessionCommand, SessionDto } from '../models/session.model';
 import { ApiResponse } from '../models/ApiResponse';
+import {TodoService} from './todo.service';
 
 @Service()
 export class SessionService {
   private readonly http = inject(HttpClient);
+  private readonly todoService = inject(TodoService);
   private readonly authService = inject(AuthService);
   private readonly sessionsListState = signal<SessionDto[]>([]);
 
   public logSession(command: LogPomodoroSessionCommand, onResult: (response: ApiResponse<string>) => void): void{
-  this.http.post<string>('/sessions/log-session', command).subscribe({
-    next: (newSessionGuidString) => {
-      onResult({
-        isSuccess: true,
-        payload: newSessionGuidString
-      });
-    },
-    error: (err) => {
-      const serverErrors = err.error?.errors || [err.message || "Unknown infrastructure error."];
-      onResult({
-        isSuccess: false,
-        errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
-      });
-    }
-  });
+    this.http.post<string>('/sessions/log-session', command).subscribe({
+      next: (newSessionGuidString) => {
+        this.todoService.incrementSessionCount(command.ToDoTaskId);
+        onResult({
+          isSuccess: true,
+          payload: newSessionGuidString
+        });
+      },
+      error: (err) => {
+        const serverErrors = err.error?.errors || [err.message || "Unknown infrastructure error."];
+        onResult({
+          isSuccess: false,
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
+        });
+      }
+    });
   }
   public fetchTaskSessions(taskid: string, onResult: (response: ApiResponse<SessionDto[]>) => void):void{
     this.http.get<SessionDto[]>(`/sessions/${taskid}`).subscribe({

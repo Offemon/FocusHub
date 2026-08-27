@@ -4,33 +4,57 @@
         <div class="task-details-container">
           <div class="task-screen">
             <div class="controls-overlay">
-              <span class="percent-display">
-                {{Math.floor(progressPercent().valueOf())}}%
-              </span>
+<!--              <span class="percent-display">-->
+<!--                {{Math.floor(progressPercent().valueOf())}}%-->
+<!--              </span>-->
+              @if(!todo.isCompleted){
+                <span class="current-phase-display">
+                  {{textDisplay()}}
+                </span>
+                  <span class="time-remaining-display">
+                  {{displayRemainingTime()}}
+                </span>
+                @if(canTagTaskComplete()){
+                  <span class="task-actions">Done with the task already? <button>Complete Task</button></span>
+                }
+              }
+              @else{
+                <span class="current-phase-display">
+                  Task Complete
+                </span>
+              }
+
             </div>
-            <span class="material-symbols-outlined">Task</span>
-            <div class="session-progress-bar-container">
-              <div class="session-progress-bar"
-                [style.width]="`${progressPercent()}%`">
+<!--            <span class="material-symbols-outlined">Task</span>-->
+            @if(!todo.isCompleted){
+              <div class="session-progress-bar-container">
+                <div class="session-progress-bar"
+                  [style.width]="`${progressPercent()}%`">
+                </div>
+                <div class="session-progress-detail">
+                  <app-icon-btn [materialIconName]="`${isClockRunning() ? GoogleIcons.Pause:GoogleIcons.PlayArrow}`" (onClick)="onToggleClock()"/>
+                  <app-icon-btn [materialIconName]="GoogleIcons.ListAltCheck" (onClick)="markTaskComplete()" [disabled]="!canTagTaskComplete()"/>
+                  <span>{{displayTime()}}</span>
+                  <span>/</span>
+                  <span>{{currentPhase() === "FOCUS" ? "25:00" : "05:00" }}</span>
+                </div>
               </div>
-              <div class="session-progress-detail">
-                <app-icon-btn [materialIconName]="`${isClockRunning() ? GoogleIcons.Pause:GoogleIcons.PlayArrow}`" (onClick)="onToggleClock()"/>
-                <app-icon-btn [materialIconName]="GoogleIcons.ListAltCheck" (onClick)="markSessionComplete()"/>
-                <span>{{displayTime()}}</span>
-                <span>/</span>
-                <span>25:00</span>
-              </div>
-            </div>
+            }
           </div>
           <div class="task-title-container">
             <h4>{{todo.title}}</h4>
           </div>
           <div class="task-details-actions-container">
             <span>{{todo.completedPomodoros}} sessions | {{todo.createdAt | date}}</span>
-            <div class="actions-container d-flex flex-d-row gap-1">
-              <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()"/>
-              <app-pill-btn [btnIcon]="GoogleIcons.Delete" btnLabel="Delete Task" (onClick)="handleDeleteTask()"/>
-            </div>
+            @if(!todo.isCompleted){
+              <div class="actions-container d-flex flex-d-row gap-1">
+                <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()" [disabled]="todo.isCompleted"/>
+                <app-pill-btn [btnIcon]="GoogleIcons.Delete" btnLabel="Delete Task" (onClick)="handleDeleteTask()" [disabled]="todo.isCompleted"/>
+              </div>
+            }
+            @else{
+              <span>Completed at: {{todo.updatedAt | date}}</span>
+            }
           </div>
           <div class="task-details-description">
               <p>{{todo.description}}</p>
@@ -60,19 +84,31 @@
       </div>
     }
     <div class="side-todo-card-list">
-      @for(todo of todoService.allToDos().slice(0,2); track todo.id){
-        <app-todo-card [todoTaskItem]="todo" />
+      @if(todoService.pendingToDosExcept(taskId()).length > 0){
+        <app-todo-card-grid>
+          @for(task of todoService.pendingToDosExcept(taskId()).slice(0,2); track task.id){
+            <app-todo-card [todoTaskItem]="task" />
+          }
+        </app-todo-card-grid>
       }
     </div>
   </div>
   <div class="task-page-lower-part">
-    <div class="bottom-todo-card-container">
-      @for(todo of todoService.allToDos(); track todo.id){
-        <app-todo-card [todoTaskItem]="todo" />
+      @if(todoService.pendingToDosExcept(taskId()).length > 0){
+        <app-todo-card-grid>
+          @for(task of todoService.pendingToDosExcept(taskId()).slice(0,8); track task.id){
+            <app-todo-card [todoTaskItem]="task" />
+          }
+        </app-todo-card-grid>
       }
-    </div>
-    <div class="todo-sessions-timeline">
-      asdfsd
+<!--      @else{-->
+<!--        <div class="display-no-tasks">-->
+<!--          <i class="material-symbols-outlined">{{GoogleIcons.Celebration}}</i>-->
+<!--          <span>No tasks left! Do you have another in mind? </span> <app-pill-btn [btnIcon]="GoogleIcons.NoteAdd" btnLabel="Create new task"/>-->
+<!--        </div>-->
+<!--      }-->
+    <div class="todo-sessions-timeline mt-2">
+      <h5 class="d-flex flex-d-row jcon-first align-i-center gap-1"><i class="material-symbols-outlined">{{GoogleIcons.Timeline}}</i> Task event timeline</h5>
     </div>
   </div>
 </div>

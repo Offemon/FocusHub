@@ -1,0 +1,13 @@
+.todo-card-grid{
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, var(--todo-card-width));
+  gap: 0.5rem;
+}
+
+.todo-card-grid.compact{
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
