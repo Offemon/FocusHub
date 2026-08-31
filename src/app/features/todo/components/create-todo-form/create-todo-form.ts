@@ -6,6 +6,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../../core/services/auth';
 import {
   CreateToDoTaskCommand,
+  TaskEnergyLevelType,
   ToDoTaskDto,
   UpdateToDoTaskDetailsCommand,
 } from '../../../../core/models/todo.model';
@@ -29,8 +30,10 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
   public toDoForm = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(256)]],
     description: ['', Validators.maxLength(1000)],
-    estimatedPomodoros: [1, [Validators.required, Validators.min(1), Validators.maxLength(1000)]],
+    estimatedPomodoros: [1, [Validators.required, Validators.min(1)]],
     dueDate: [''],
+    energyLevel: [2,[Validators.min(1), Validators.max(3)]],
+    isPriority:[false]
   });
 
   protected isDataUnedited = computed(() => {
@@ -44,7 +47,9 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
     const currentLiveDate = currentLive.dueDate ? new Date(currentLive.dueDate).toISOString().slice(0, 10) : '';
     const originalDate = this.originalToDoItem.dueDate ? new Date(this.originalToDoItem.dueDate).toISOString().slice(0, 10) : '';
     const isDateSame = currentLiveDate === originalDate;
-    return isTitleSame && isDateSame && isDescSame && isPomoSame;
+    const isEnergySame = currentLive.energyLevel === this.originalToDoItem.energyLevel;
+    const isPrioritySame = currentLive.isPriority === this.originalToDoItem.isPriority;
+    return isTitleSame && isDateSame && isDescSame && isPomoSame && isEnergySame && isPrioritySame;
   });
 
   private formLiveState = toSignal(this.toDoForm.valueChanges, {initialValue: this.toDoForm.getRawValue()});
@@ -65,7 +70,9 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
         title: payload.title,
         description: payload.description ?? '',
         estimatedPomodoros: payload.estimatedPomodoros,
-        dueDate: payload.dueDate ? new Date(payload.dueDate).toISOString().slice(0,10) : ''
+        dueDate: payload.dueDate ? new Date(payload.dueDate).toISOString().slice(0,10) : '',
+        energyLevel: payload.energyLevel,
+        isPriority: payload.isPriority
       });
 
     }
@@ -81,6 +88,8 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
         description: formValues.description.trim(),
         estimatedPomodoros: Number(formValues.estimatedPomodoros),
         dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString() : null,
+        energyLevel: Number(formValues.energyLevel) as TaskEnergyLevelType,
+        isPriority: formValues.isPriority,
       };
       if (this.modalRef) {
         this.modalRef.close(createToDoTaskCommandPayload);
@@ -92,7 +101,9 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
         title: formValues.title.trim(),
         description: formValues.description.trim(),
         estimatedPomodoros: Number(formValues.estimatedPomodoros),
-        dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString().slice(0, 10) : ''
+        dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString().slice(0, 10) : '',
+        energyLevel: Number(formValues.energyLevel) as TaskEnergyLevelType,
+        isPriority: formValues.isPriority
       };
       if(this.modalRef){
         this.modalRef.close(updateToDoTaskCommandPayload);

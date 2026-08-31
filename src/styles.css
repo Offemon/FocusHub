@@ -61,6 +61,39 @@ h6{
 .text-secondary{
   color: var(--text-secondary);
 }
+.txt-color-info{
+  color: var(--color-info)
+}
+.txt-color-success{
+  color: var(--color-success)
+}
+.txt-color-warning{
+  color: var(--color-warning)
+}
+.txt-color-error{
+  color: var(--color-error)
+}
+.txt-color-fatal{
+  color: var(--color-fatal)
+}
+.txt-size-xs{
+  font-size: 1em;
+}
+.txt-size-sm{
+  font-size: 1.25em;
+}
+.txt-size-m{
+  font-size: 1.5em;
+}
+.txt-size-l{
+  font-size: 1.75em;
+}
+.txt-size-xl{
+  font-size: 2em;
+}
+.txt-size-xxl{
+  font-size: 2.5em;
+}
 .font-bold{
   font-weight: bold;
 }

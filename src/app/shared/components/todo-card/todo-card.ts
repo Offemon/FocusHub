@@ -8,15 +8,16 @@ import { TodoService } from '../../../core/services/todo.service';
 import { IPayloadContainer, ModalOptions } from '../../../core/models/system.modal.design';
 import { CreateTodoForm } from '../../../features/todo/components/create-todo-form/create-todo-form';
 import {TodoCardGrid} from '../todo-card-grid/todo-card-grid';
+import { IconBtn } from '../icon-btn/icon-btn';
 
 @Component({
   selector: 'app-todo-card',
-  imports: [RouterLink],
+  imports: [RouterLink, IconBtn],
   templateUrl: './todo-card.html',
   styleUrl: './todo-card.css',
 })
 export class TodoCard {
-  private readonly parentGridContext = inject(TodoCardGrid, {host: true});
+  private readonly parentGridContext = inject(TodoCardGrid, { host: true });
   private readonly elementRef = inject(ElementRef);
   private readonly todoService = inject(TodoService);
   private readonly modalService = inject(ModalService);
@@ -24,31 +25,29 @@ export class TodoCard {
   public todoTaskItem = input.required<ToDoTaskDto>();
   public isPopupHidden = signal<boolean>(true);
 
-  constructor() {
-  }
+  constructor() {}
 
-  public toggleContextPopup(event: MouseEvent): void{
+  public toggleContextPopup(event: MouseEvent): void {
     event.stopPropagation();
     this.isPopupHidden.set(!this.isPopupHidden());
   }
 
-  @HostListener('document:click',['$event'])
-  public onGlobalClick(event: MouseEvent): void{
+  @HostListener('document:click', ['$event'])
+  public onGlobalClick(event: MouseEvent): void {
     if (this.isPopupHidden()) return;
     const clickedElement = event.target as HTMLElement;
     const isClickedInsideCard = this.elementRef.nativeElement.contains(clickedElement);
-    if(!isClickedInsideCard){
-      this.isPopupHidden.set(true)
+    if (!isClickedInsideCard) {
+      this.isPopupHidden.set(true);
     }
   }
 
-  public HandleComplete(){
-    if(this.todoTaskItem().completedPomodoros > 0){
-
+  public HandleComplete() {
+    if (this.todoTaskItem().completedPomodoros > 0) {
     }
     this.isPopupHidden.set(true);
   }
-  public HandleEdit(): void{
+  public HandleEdit(): void {
     this.isPopupHidden.set(true);
     const todoTask = this.todoTaskItem();
     const modalOptions: ModalOptions = {
@@ -61,17 +60,24 @@ export class TodoCard {
     dialog.onResult.then((updatedTask: UpdateToDoTaskDetailsCommand) => {
       this.todoService.updateToDoTask(updatedTask, (response) => {
         if (response.isSuccess) {
-          this.snackbarService.showSuccess("Task updated successfully!");
-        }
-        else{
-          this.snackbarService.showWarning("Failed to updated task");
+          this.snackbarService.showSuccess('Task updated successfully!');
+        } else {
+          this.snackbarService.showWarning('Failed to updated task');
         }
       });
     });
-
   }
-  public HandleDelete(): void{
+  public HandleDelete(): void {
     this.isPopupHidden.set(true);
+  }
+  public HandlePriorityToggle(): void {
+    this.todoService.toggleToDoTaskPriority(this.todoTaskItem().id, (response) =>{
+      if(response.isSuccess)
+        this.snackbarService.showSuccess("Task's priority has been toggled successfully")
+      else{
+        this.snackbarService.showWarning("Failed to toggle this task's priority.")
+      }
+    });
   }
 
   protected readonly GoogleIcons = GoogleIcons;

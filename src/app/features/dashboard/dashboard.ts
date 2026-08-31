@@ -5,10 +5,11 @@ import { SnackbarComponent } from '../../shared/components/snackbar.component/sn
 import { SnackbarService } from '../../core/services/snackbar';
 import { IconBtn } from '../../shared/components/icon-btn/icon-btn';
 import { GoogleIcons } from '../../core/models/google.material.icons';
+import { ToggleIconBtn } from '../../shared/components/toggle-icon-btn/toggle-icon-btn';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, RouterLinkActive, RouterLink, SnackbarComponent, IconBtn],
+  imports: [RouterOutlet, RouterLinkActive, RouterLink, SnackbarComponent, IconBtn, ToggleIconBtn],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

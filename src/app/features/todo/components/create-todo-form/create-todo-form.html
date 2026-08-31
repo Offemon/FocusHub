@@ -7,13 +7,28 @@
     <label for="task-desc">Task Description</label>
     <textarea name="task-desc" id="task-desc" cols="30" rows="10" formControlName="description"></textarea>
   </div>
-  <div class="form-input-section">
-    <label for="est-pom-sess-count">Estimated Pomodoro Sessions</label>
-    <input type="number" id="est-pom-sess-count" formControlName="estimatedPomodoros">
+  <div class="form-input-section-group">
+    <div class="form-input-section">
+      <label for="est-pom-sess-count">Estimated Pomodoro Sessions</label>
+      <input type="number" id="est-pom-sess-count" formControlName="estimatedPomodoros">
+    </div>
+    <div class="form-input-section">
+      <label for="due-date">Target Due Date</label>
+      <input type="date" id="due-date" formControlName="dueDate" [min]="minAvailableDate()" >
+    </div>
   </div>
   <div class="form-input-section">
-    <label for="due-date">Target Due Date</label>
-    <input type="date" id="due-date" formControlName="dueDate" [min]="minAvailableDate()" >
+    <label for="energy-slider">Effort requirement</label>
+    <input type="range" min="1" max="3" value="2" class="task-energy-slider" id="energy-slider" formControlName="energyLevel">
+    <div class="d-flex flex-d-row jcon-s-between">
+      <span class="txt-color-success txt-size-sm">Low</span>
+      <span class="txt-color-error txt-size-sm">Medium</span>
+      <span class="txt-color-fatal txt-size-sm">High</span>
+    </div>
+  </div>
+  <div class="d-flex flex-d-row jcon-first gap-1">
+    <input type="checkbox" id="tag-as-priority" formControlName="isPriority">
+    <label for="tag-as-priority">Mark as priority?</label>
   </div>
   <div class="form-actions">
     <button type="button" (click)="onCancel()">Close</button>

@@ -42,7 +42,11 @@
       color: var(--color-info);
       border: 1px solid var(--color-info);
     }
-
+    .priority-toggle{
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
     .task-com-pom-count,.task-est-pom-count{
       display: block;
       width: fit-content;

@@ -16,12 +16,13 @@ import { SnackbarService } from '../../../../core/services/snackbar';
 import { map, tap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-card-grid';
+import { ToggleIconBtn } from '../../../../shared/components/toggle-icon-btn/toggle-icon-btn';
 
 
 export type PomodoroPhase = 'FOCUS' | 'BREAK';
 @Component({
   selector: 'app-todo-details',
-  imports: [DatePipe, PillBtn, TodoCard, IconBtn, TodoCardGrid],
+  imports: [DatePipe, PillBtn, TodoCard, IconBtn, TodoCardGrid, ToggleIconBtn],
   templateUrl: './todo-details.html',
   styleUrl: './todo-details.css',
 })
@@ -242,5 +243,9 @@ export class TodoDetails {
         }
       });
     }
+  }
+
+  public handleToggle(task: ToDoTaskDto): void{
+    this.todoService.localUpdateToDoTask(task);
   }
 }

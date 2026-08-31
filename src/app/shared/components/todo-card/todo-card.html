@@ -50,6 +50,9 @@
           Ongoing
         </span>
       }
+      @if(!todo.isCompleted){
+        <span class="priority-toggle"><app-icon-btn [materialIconName]="todo.isPriority ? GoogleIcons.CheckBox : GoogleIcons.CheckBoxBlank" (onClick)="HandlePriorityToggle()"/></span>
+      }
       <span class="task-com-pom-count">{{todo.completedPomodoros}}</span>
       <span class="task-est-pom-count">{{todo.estimatedPomodoros}}</span>
     </div>

@@ -1,4 +1,6 @@
 export const GoogleIcons = {
+  CheckBox: "check_box",
+  CheckBoxBlank: "check_box_outline_blank",
   Edit: "edit_document",
   History: "history",
   Timeline: "timeline",

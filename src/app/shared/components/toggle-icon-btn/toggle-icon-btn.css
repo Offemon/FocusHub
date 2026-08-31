@@ -1,0 +1,25 @@
+button[type="button"]{
+  all: unset;
+}
+.toggle-icol-btn{
+  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  padding: 1rem;
+  &.dense{
+    padding: 0.75rem;
+    .material-symbols-outlined{
+      font-size: 2rem;
+    }
+  }
+  &.toggle-on{
+    .material-symbols-outlined{
+      color: var(--primary);
+    }
+  }
+  &.toggle-off{
+    .material-symbols-outlined{
+      color: var(--text-secondary);
+    }
+  }
+
+}

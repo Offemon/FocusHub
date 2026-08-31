@@ -100,6 +100,8 @@ export class TodoService {
                 description: request.description,
                 estimatedPomodoros: request.estimatedPomodoros,
                 dueDate: request.dueDate,
+                isPriority: request.isPriority,
+                energyLevel: request.energyLevel
               };
             }
             return task;
@@ -115,6 +117,18 @@ export class TodoService {
         });
       },
     });
+  }
+  public localUpdateToDoTask(todo: ToDoTaskDto): void{
+    this.todoListState.update(todoList =>
+      todoList.map((task) => {
+        if(task.id === todo.id){
+          return {
+            ...todo
+          }
+        }
+        return task;
+      })
+    );
   }
   public tagToDoTaskComplete(taskId: string, onResult: (response: ApiResponse) => void): void {
     this.http.put<void>(`/tasks/${taskId}/complete`, {}).subscribe({
@@ -166,6 +180,31 @@ export class TodoService {
           errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
         });
       },
+    });
+  }
+  public toggleToDoTaskPriority(taskId: string, onResult: (response: ApiResponse)=> void): void{
+    this.http.put<void>(`/tasks/${taskId}/toggle-priority`,{}).subscribe({
+      next: () => {
+        this.todoListState.update((todoList) =>
+          todoList.map(todo => {
+            if(todo.id === taskId){
+              return{
+                ...todo,
+                isPriority: !todo.isPriority
+              }
+            }
+            return todo;
+          })
+        );
+        onResult({isSuccess: true});
+      },
+      error: (err) => {
+        const serverErrors = err.errors?.error || [err.message || "Unknown Infrastructure error."];
+        onResult({
+          isSuccess: false,
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
+        });
+      }
     });
   }
   public fetchTaskById(taskId: string): Observable<ToDoTaskDto> {

@@ -1,6 +1,7 @@
 <div class="task-detail-page-container">
   <div class="task-page-upper-part">
     @if(task(); as todo){
+<!--      <app-toggle-icon-btn [activeIconBtnName]="GoogleIcons.ListAltCheck" [inactiveIconBtnName]="GoogleIcons.NoteAdd" [toggleTarget]="todo" [boolProperty]="'isPriority'"/>-->
         <div class="task-details-container">
           <div class="task-screen">
             <div class="controls-overlay">
@@ -109,6 +110,7 @@
 <!--      }-->
     <div class="todo-sessions-timeline mt-2">
       <h5 class="d-flex flex-d-row jcon-first align-i-center gap-1"><i class="material-symbols-outlined">{{GoogleIcons.Timeline}}</i> Task event timeline</h5>
+
     </div>
   </div>
 </div>
