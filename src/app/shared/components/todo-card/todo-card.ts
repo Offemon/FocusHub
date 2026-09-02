@@ -9,10 +9,12 @@ import { IPayloadContainer, ModalOptions } from '../../../core/models/system.mod
 import { CreateTodoForm } from '../../../features/todo/components/create-todo-form/create-todo-form';
 import {TodoCardGrid} from '../todo-card-grid/todo-card-grid';
 import { IconBtn } from '../icon-btn/icon-btn';
+import {MccConfirm} from '../modal-child-components/mcc-confirm/mcc-confirm';
+import { TooltipDirective } from '../../directives/tooltip.directives';
 
 @Component({
   selector: 'app-todo-card',
-  imports: [RouterLink, IconBtn],
+  imports: [RouterLink, IconBtn, TooltipDirective],
   templateUrl: './todo-card.html',
   styleUrl: './todo-card.css',
 })
@@ -76,6 +78,33 @@ export class TodoCard {
         this.snackbarService.showSuccess("Task's priority has been toggled successfully")
       else{
         this.snackbarService.showWarning("Failed to toggle this task's priority.")
+      }
+    });
+  }
+
+  public HandleAbandon(): void{
+    const modalOpts: ModalOptions = {
+      title: "Abandon task?",
+      closeOnOverlayClick: false,
+      maxWidth: "sm"
+    }
+    const mccPayload: IPayloadContainer<string> ={
+      payload: "Are you sure you want to abandon this task?"
+    }
+    const dialog = this.modalService.show(MccConfirm, modalOpts, mccPayload);
+    dialog.onResult.then((response)=>{
+      if(response){
+        this.todoService.abandonToDoTask(this.todoTaskItem().id,(response)=>{
+          if(response.isSuccess){
+            this.snackbarService.showInfo("Task has been abandoned.");
+          }
+          else{
+            this.snackbarService.showError(`Failed to abandon task: ${response.errors?.join(", ")}`);
+          }
+        });
+      }
+      else{
+        this.snackbarService.showSuccess("Good on you for not abandoning a task!")
       }
     });
   }

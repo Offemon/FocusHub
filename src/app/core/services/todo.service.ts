@@ -207,6 +207,31 @@ export class TodoService {
       }
     });
   }
+  public abandonToDoTask(taskId: string, onResult: (response: ApiResponse)=> void): void{
+    this.http.put<void>(`/tasks/${taskId}/abandon-task`,{}).subscribe({
+      next: () => {
+        this.todoListState.update((todoList) =>
+          todoList.map((todo) => {
+            if(todo.id === taskId){
+              return{
+                ...todo,
+                isAbandoned: !todo.isAbandoned
+              }
+            }
+            return todo;
+          })
+        );
+        onResult({isSuccess: true});
+      },
+      error: (err) => {
+        const serverErrors = err.error?.error || [err.message || 'Unknown infrastructure error.'];
+        onResult({
+          isSuccess: false,
+          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
+        });
+      }
+    });
+  }
   public fetchTaskById(taskId: string): Observable<ToDoTaskDto> {
     return this.http.get<ToDoTaskDto>(`/tasks/${taskId}`);
   }

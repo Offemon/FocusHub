@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-tooltip',
@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './tooltip.html',
   styleUrl: './tooltip.css',
 })
-export class Tooltip {}
+export class Tooltip {
+  public text = input.required<string>();
+}

@@ -1,0 +1,7 @@
+@if(confirmationMessage){
+  <p>{{confirmationMessage}}</p>
+}
+<div class="d-flex flex-d-row jcon-last gap-2 mt-4">
+  <button (click)="HandleConfirm()">Confirm</button>
+  <button (click)="HandleCancel()">Cancel</button>
+</div>

@@ -17,6 +17,7 @@ import { map, tap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-card-grid';
 import { ToggleIconBtn } from '../../../../shared/components/toggle-icon-btn/toggle-icon-btn';
+import { MccConfirm } from '../../../../shared/components/modal-child-components/mcc-confirm/mcc-confirm';
 
 
 export type PomodoroPhase = 'FOCUS' | 'BREAK';
@@ -43,6 +44,7 @@ export class TodoDetails {
     this.route.paramMap.pipe(map((params) => params.get('id') ?? '')),
     { initialValue: '' },
   );
+  protected readonly taskIdNew = computed(() => this.route.snapshot.paramMap.get('id'));
   protected readonly task = computed(() =>
     this.todoService.allToDos().find((t) => t.id === this.taskId()),
   );
@@ -154,6 +156,35 @@ export class TodoDetails {
   public ngOnDestroy(): void {
     this.pauseTimer();
   }
+
+  public handleAbandon(): void {
+    const currentTaskInstance = this.task();
+    if(!currentTaskInstance) return;
+    const modalOpts: ModalOptions = {
+      title: 'Abandon task?',
+      closeOnOverlayClick: false,
+      maxWidth: 'sm',
+    };
+    const mccPayload: IPayloadContainer<string> = {
+      payload: 'Are you sure you want to abandon this task?',
+    };
+    const dialog = this.modal.show(MccConfirm, modalOpts, mccPayload);
+    dialog.onResult.then((response) => {
+      if (response) {
+        this.todoService.abandonToDoTask(currentTaskInstance.id, (response) => {
+          if (response.isSuccess) {
+            this.snackbarService.showInfo('Task has been abandoned.');
+          } else {
+            this.snackbarService.showError(
+              `Failed to abandon task: ${response.errors?.join(', ')}`,
+            );
+          }
+        });
+      } else {
+        this.snackbarService.showSuccess('Good on you for not abandoning a task!');
+      }
+    });
+  }
   public handleModifyTask(): void {
     const currentTaskInstance = this.task();
     if (!currentTaskInstance) return;
@@ -245,7 +276,7 @@ export class TodoDetails {
     }
   }
 
-  public handleToggle(task: ToDoTaskDto): void{
+  public handleToggle(task: ToDoTaskDto): void {
     this.todoService.localUpdateToDoTask(task);
   }
 }

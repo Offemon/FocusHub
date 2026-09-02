@@ -51,7 +51,7 @@
         </span>
       }
       @if(!todo.isCompleted){
-        <span class="priority-toggle"><app-icon-btn [materialIconName]="todo.isPriority ? GoogleIcons.CheckBox : GoogleIcons.CheckBoxBlank" (onClick)="HandlePriorityToggle()"/></span>
+        <span class="priority-toggle"><app-icon-btn [materialIconName]="todo.isPriority ? GoogleIcons.CheckBox : GoogleIcons.CheckBoxBlank" (onClick)="HandlePriorityToggle()" Tooltip="Set Priority"/></span>
       }
       <span class="task-com-pom-count">{{todo.completedPomodoros}}</span>
       <span class="task-est-pom-count">{{todo.estimatedPomodoros}}</span>
@@ -73,9 +73,9 @@
               <span class="material-symbols-outlined">edit</span>
               <p>Edit</p>
             </div>
-            <div class="context-entry" (click)="HandleDelete()">
-              <span class="material-symbols-outlined">delete</span>
-              <p>Delete</p>
+            <div class="context-entry" (click)="HandleAbandon()">
+              <span class="material-symbols-outlined">block</span>
+              <p>Abandon</p>
             </div>
           </div>
         </div>

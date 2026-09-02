@@ -49,8 +49,8 @@
             <span>{{todo.completedPomodoros}} sessions | {{todo.createdAt | date}}</span>
             @if(!todo.isCompleted){
               <div class="actions-container d-flex flex-d-row gap-1">
-                <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()" [disabled]="todo.isCompleted"/>
-                <app-pill-btn [btnIcon]="GoogleIcons.Delete" btnLabel="Delete Task" (onClick)="handleDeleteTask()" [disabled]="todo.isCompleted"/>
+                <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()"/>
+                <app-pill-btn [btnIcon]="GoogleIcons.Block" btnLabel="Abandon Task" (onClick)="handleAbandon()"/>
               </div>
             }
             @else{
