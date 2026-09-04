@@ -18,12 +18,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-card-grid';
 import { ToggleIconBtn } from '../../../../shared/components/toggle-icon-btn/toggle-icon-btn';
 import { MccConfirm } from '../../../../shared/components/modal-child-components/mcc-confirm/mcc-confirm';
+import { PomodoroEngine, PomodoroPhase } from '../../../../core/services/pomodoro-engine';
 
 
-export type PomodoroPhase = 'FOCUS' | 'BREAK';
 @Component({
   selector: 'app-todo-details',
-  imports: [DatePipe, PillBtn, TodoCard, IconBtn, TodoCardGrid, ToggleIconBtn],
+  imports: [DatePipe, PillBtn, TodoCard, IconBtn, TodoCardGrid],
+  providers: [PomodoroEngine],
   templateUrl: './todo-details.html',
   styleUrl: './todo-details.css',
 })
@@ -38,8 +39,8 @@ export class TodoDetails {
   protected readonly snackbarService = inject(SnackbarService);
   protected readonly nav = inject(Router);
   protected readonly modal = inject(ModalService);
+  public readonly pomodoroEngine = inject(PomodoroEngine);
 
-  // To-Do object variables
   protected readonly taskId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id') ?? '')),
     { initialValue: '' },
@@ -49,117 +50,31 @@ export class TodoDetails {
     this.todoService.allToDos().find((t) => t.id === this.taskId()),
   );
 
-  //Timer Variables
-  // private readonly focusDuration: number = 25 * 60;
-  // private readonly breakDuration: number = 5 * 60;
-  private readonly focusDuration: number = 60;
-  private readonly breakDuration: number = 60;
-  private readonly minSessionSeconds = 60 * 1;
-  protected readonly currentPhase = signal<PomodoroPhase>('FOCUS');
-  protected readonly remainingSeconds = signal<number>(this.focusDuration);
-  protected readonly isClockRunning = signal<boolean>(false);
-  protected readonly textDisplay = signal<string>('Start');
-  protected readonly canTagTaskComplete = signal<boolean>(false);
-  protected readonly elapsedSeconds = computed(() => this.focusDuration - this.remainingSeconds());
-
-  private timerIntervalId: any = null;
-
-  protected readonly totalCurrentPhaseSeconds = computed(() =>
-    this.currentPhase() === 'FOCUS' ? this.focusDuration : this.breakDuration,
-  );
-
-  protected readonly progressPercent = computed(() => {
-    const total = this.totalCurrentPhaseSeconds();
-    const elapsed = total - this.remainingSeconds();
-    const computedPercentage = (elapsed / total) * 100;
-    return Math.min(100, Math.max(0, computedPercentage));
-  });
-
-  protected readonly displayTime = computed(() => {
-    const total = this.totalCurrentPhaseSeconds();
-    const remaining = this.remainingSeconds();
-    const minutes = Math.floor((total - remaining) / 60);
-    const seconds = (total - remaining) % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  });
-
-  protected readonly displayRemainingTime = computed(() => {
-    const total = this.totalCurrentPhaseSeconds();
-    const remaining = this.remainingSeconds();
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  });
-  public onToggleClock(): void {
-    if (this.isClockRunning() && this.currentPhase() === 'FOCUS') {
-      this.snackbarService.showWarning(`Session interrupted.`);
-      this.textDisplay.set('Start');
-      this.onResetClock();
-    } else {
-      this.textDisplay.set(this.currentPhase());
-      this.startTimer();
-    }
-  }
-
-  private startTimer(): void {
-    if (this.timerIntervalId) clearInterval(this.timerIntervalId);
-    this.isClockRunning.set(true);
-    this.timerIntervalId = setInterval(() => {
-      if (this.elapsedSeconds() >= 60) this.canTagTaskComplete.set(true);
-      if (this.remainingSeconds() > 0) this.remainingSeconds.update((current) => current - 1);
-      else this.onSessionComplete();
-    }, 1000);
-  }
-  private pauseTimer(): void {
-    this.isClockRunning.set(false);
-    if (this.timerIntervalId) {
-      clearInterval(this.timerIntervalId);
-      this.timerIntervalId = null;
-    }
-  }
-  public onResetClock(): void {
-    this.pauseTimer();
-    this.remainingSeconds.set(this.totalCurrentPhaseSeconds());
-  }
-  private onSessionComplete(): void {
-    this.pauseTimer();
-    this.ringBell();
-    if (this.currentPhase() === 'FOCUS') {
-      const currentTaskId = this.taskId();
-      this.logSession(currentTaskId);
-      this.currentPhase.set('BREAK');
-      this.remainingSeconds.set(this.breakDuration);
-    } else {
-      this.currentPhase.set('FOCUS');
-      this.remainingSeconds.set(this.focusDuration);
-    }
-    this.textDisplay.set(this.currentPhase());
-
-    // insert Api call for incrementing session count here
-
-    this.onResetClock();
-    this.startTimer();
-  }
-  // protected markSessionComplete(): void {
-  //   this.pauseTimer();
-  //   // insert Api call for incrementing session count here
-  // }
-
-  public ringBell(): void {
-    const audio = new Audio();
-    audio.src = 'assets/audio/break_bell.mp3';
-    audio.load();
-    audio.play().catch((error) => {
-      console.log('Audio playback failed', error);
+  public ngOnInit() {
+    this.pomodoroEngine.Initialize({
+      onStart: () => {
+        if(this.pomodoroEngine.CurrentPhase() === PomodoroPhase.Focus){
+          this.snackbarService.showInfo("Focus phase started.");
+        }
+        else{
+          this.snackbarService.showInfo("Break phase started.");
+        }
+      },
+      onInterrupted: ()=> {
+        this.snackbarService.showWarning("Focus interrupted.");
+      },
+      onMinimumFocus: () => {
+        this.snackbarService.showWarning(`${this.pomodoroEngine.ElapsedSeconds()} seconds of focus session completed`);
+        this.logSession(this.taskId());
+      },
+      onSessionComplete: () => {
+        this.logSession(this.taskId());
+      }
     });
   }
-  public ngOnDestroy(): void {
-    this.pauseTimer();
-  }
-
   public handleAbandon(): void {
     const currentTaskInstance = this.task();
-    if(!currentTaskInstance) return;
+    if (!currentTaskInstance) return;
     const modalOpts: ModalOptions = {
       title: 'Abandon task?',
       closeOnOverlayClick: false,
@@ -215,17 +130,20 @@ export class TodoDetails {
     });
   }
   protected markTaskComplete(): void {
-    this.pauseTimer();
+    this.pomodoroEngine.PauseTimer();
     const currentTaskId = this.taskId();
-    const elapsedSeconds = this.elapsedSeconds();
-    const isClockRunning = this.isClockRunning();
-    const currentPhase = this.currentPhase();
+    const elapsedSeconds = this.pomodoroEngine.ElapsedSeconds();
+    const isClockRunning = this.pomodoroEngine.IsClockRunning();
+    const currentPhase = this.pomodoroEngine.CurrentPhase();
     if (isClockRunning) {
-      if (elapsedSeconds >= this.minSessionSeconds && currentPhase === 'FOCUS') {
+      if (elapsedSeconds >= this.pomodoroEngine.MinFocusDuration && currentPhase === PomodoroPhase.Focus) {
         this.completeTask(currentTaskId, elapsedSeconds / 60);
-      } else if (elapsedSeconds < this.minSessionSeconds && currentPhase === 'FOCUS') {
+      } else if (
+        elapsedSeconds < this.pomodoroEngine.MinFocusDuration &&
+        currentPhase === PomodoroPhase.Focus
+      ) {
         this.completeTask(currentTaskId);
-      } else if (currentPhase === 'BREAK') {
+      } else if (currentPhase === PomodoroPhase.Break) {
         this.completeTask(currentTaskId, 25);
       }
     } else {
@@ -234,7 +152,7 @@ export class TodoDetails {
   }
   private logSession(currentTaskId: string): void {
     const elapsedTime = Math.floor(
-      (this.totalCurrentPhaseSeconds() - this.remainingSeconds()) / 60,
+      (this.pomodoroEngine.TotalCurrentPhaseSeconds() - this.pomodoroEngine.RemainingSeconds()) / 60,
     );
     const logSessionCommand: LogPomodoroSessionCommand = {
       ToDoTaskId: currentTaskId,
@@ -275,8 +193,9 @@ export class TodoDetails {
       });
     }
   }
-
-  public handleToggle(task: ToDoTaskDto): void {
-    this.todoService.localUpdateToDoTask(task);
+  public EmergencyLogSession(){
+    this.pomodoroEngine.PauseTimer();
+    this.snackbarService.showWarning(`Session interrupted. Logging eligible progress slot: ${this.pomodoroEngine.DisplayTime()}`);
+    this.logSession(this.taskId());
   }
 }

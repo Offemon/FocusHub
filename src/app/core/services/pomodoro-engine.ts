@@ -17,6 +17,9 @@ export class PomodoroEngine implements OnDestroy {
   private readonly focusDuration: number = 25 * 60;
   private readonly breakDuration: number = 5 * 60;
   private readonly minFocusDuration: number = 10 * 60;
+  // private readonly focusDuration: number = 1 * 60;
+  // private readonly breakDuration: number = 1 * 60;
+  // private readonly minFocusDuration: number = 5;
 
   private readonly currentPhase = signal<PomodoroPhaseType>(PomodoroPhase.Focus);
   private readonly remainingSeconds = signal<number>(this.focusDuration);
@@ -31,32 +34,41 @@ export class PomodoroEngine implements OnDestroy {
   private readonly totalCurrentPhaseSeconds = computed(() =>
     this.currentPhase() === PomodoroPhase.Focus ? this.focusDuration : this.breakDuration,
   );
-  public displayPhase = computed(() => this.currentPhase());
-  public readonly progressPercent = computed(() => {
+  public readonly FocusDuration = this.focusDuration;
+  public readonly BreakDuration = this.breakDuration;
+  public readonly MinFocusDuration = this.minFocusDuration;
+  public readonly CurrentPhase = computed(() => this.currentPhase());
+  public readonly TotalCurrentPhaseSeconds = computed(() => this.totalCurrentPhaseSeconds());
+  public readonly RemainingSeconds = computed(() => this.remainingSeconds());
+  public readonly IsClockRunning = computed(() => this.isClockRunning());
+  public readonly ElapsedSeconds = computed(() => this.elapsedSeconds());
+  public readonly CanTagTaskComplete = computed(() => this.canTagTaskComplete());
+
+  public readonly DisplayProgressPercent = computed(() => {
     const total = this.totalCurrentPhaseSeconds();
     const elapsed = this.elapsedSeconds();
     const computedPercentage = (elapsed / total) * 100;
     return Math.min(100, Math.max(0, computedPercentage));
   });
 
-  public readonly displayTime = computed(() => {
+  public readonly DisplayTime = computed(() => {
     const total = this.totalCurrentPhaseSeconds();
     const remaining = this.remainingSeconds();
     const minutes = Math.floor((total - remaining) / 60);
     const seconds = (total - remaining) % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   });
-  public readonly displayRemainingTime = computed(() => {
+  public readonly DisplayRemainingTime = computed(() => {
     const total = this.totalCurrentPhaseSeconds();
     const remaining = this.remainingSeconds();
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   });
-  public initialize(timerConfig: TimerConfig) {
+  public Initialize(timerConfig: TimerConfig) {
     this.config = timerConfig;
   }
-  public onToggleTimer(): void {
+  public OnToggleTimer(): void {
     if (this.isClockRunning() && this.remainingSeconds() > 0) {
       if (this.currentPhase() === PomodoroPhase.Focus) {
         if (this.elapsedSeconds() >= this.minFocusDuration) {
@@ -65,7 +77,7 @@ export class PomodoroEngine implements OnDestroy {
           this.config?.onInterrupted();
         }
       }
-      this.resetTimer();
+      this.ResetTimer();
     } else {
       this.startTimer();
     }
@@ -74,6 +86,12 @@ export class PomodoroEngine implements OnDestroy {
     if (this.timerInstance) clearInterval(this.timerInstance);
     this.isClockRunning.set(true);
     this.config?.onStart();
+    if(this.currentPhase() === PomodoroPhase.Focus){
+      this.ringFocusSound();
+    }
+    else{
+      this.ringBreakBell();
+    }
     this.timerInstance = setInterval(() => {
       if (
         this.elapsedSeconds() >= this.minFocusDuration &&
@@ -84,12 +102,12 @@ export class PomodoroEngine implements OnDestroy {
       else this.phaseComplete();
     }, 1000);
   }
-  private resetTimer() {
-    this.pauseTimer();
+  public ResetTimer() {
+    this.PauseTimer();
     this.currentPhase.set(PomodoroPhase.Focus);
     this.remainingSeconds.set(this.focusDuration);
   }
-  public pauseTimer(): void {
+  public PauseTimer(): void {
     this.isClockRunning.set(false);
     if (this.timerInstance) {
       clearInterval(this.timerInstance);
@@ -97,14 +115,14 @@ export class PomodoroEngine implements OnDestroy {
     }
   }
   private phaseComplete(): void {
-    this.pauseTimer();
+    this.PauseTimer();
     if (this.currentPhase() === PomodoroPhase.Focus) {
       this.config?.onSessionComplete();
-      this.ringBreakBell();
+      // this.ringBreakBell();
       this.currentPhase.set(PomodoroPhase.Break);
       this.remainingSeconds.set(this.breakDuration);
     } else {
-      this.ringFocusSound();
+      // this.ringFocusSound();
       this.canTagTaskComplete.set(false);
       this.currentPhase.set(PomodoroPhase.Focus);
       this.remainingSeconds.set(this.focusDuration);
@@ -121,7 +139,7 @@ export class PomodoroEngine implements OnDestroy {
   }
   private ringFocusSound(): void {
     const audio = new Audio();
-    audio.src = 'assets/audio/focus_start.mp3';
+    audio.src = 'assets/audio/focus-start.mp3';
     audio.load();
     audio.volume = 0.5;
     audio.play().catch((error) => {
@@ -129,6 +147,6 @@ export class PomodoroEngine implements OnDestroy {
     });
   }
   public ngOnDestroy() {
-    this.resetTimer();
+    this.PauseTimer();
   }
 }

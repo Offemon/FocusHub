@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { todoResolver } from './core/resolvers/todo.resolver';
+import { PomodoroNavigationGuard } from './core/guards/pomodoro-navigation.guard';
 
 export const routes: Routes = [
   {
@@ -24,7 +25,8 @@ export const routes: Routes = [
       {
         path: 'todos/:id',
         loadComponent: () => import('./features/todo/components/todo-details/todo-details').then((m) => m.TodoDetails),
-        resolve: {cacheHydrated: todoResolver}
+        resolve: {cacheHydrated: todoResolver},
+        canDeactivate: [PomodoroNavigationGuard]
       },
       {
         path: 'pomodoro/sessions',

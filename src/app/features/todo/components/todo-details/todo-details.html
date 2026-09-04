@@ -10,12 +10,12 @@
 <!--              </span>-->
               @if(!todo.isCompleted){
                 <span class="current-phase-display">
-                  {{textDisplay()}}
+                  {{pomodoroEngine.CurrentPhase()}}
                 </span>
                   <span class="time-remaining-display">
-                  {{displayRemainingTime()}}
+                  {{pomodoroEngine.DisplayRemainingTime()}}
                 </span>
-                @if(canTagTaskComplete()){
+                @if(pomodoroEngine.CanTagTaskComplete()){
                   <span class="task-actions">Done with the task already? <button>Complete Task</button></span>
                 }
               }
@@ -30,14 +30,14 @@
             @if(!todo.isCompleted){
               <div class="session-progress-bar-container">
                 <div class="session-progress-bar"
-                  [style.width]="`${progressPercent()}%`">
+                  [style.width]="`${pomodoroEngine.DisplayProgressPercent()}%`">
                 </div>
                 <div class="session-progress-detail">
-                  <app-icon-btn [materialIconName]="`${isClockRunning() ? GoogleIcons.Pause:GoogleIcons.PlayArrow}`" (onClick)="onToggleClock()"/>
-                  <app-icon-btn [materialIconName]="GoogleIcons.ListAltCheck" (onClick)="markTaskComplete()" [disabled]="!canTagTaskComplete()"/>
-                  <span>{{displayTime()}}</span>
+                  <app-icon-btn [materialIconName]="`${pomodoroEngine.IsClockRunning() ? GoogleIcons.Pause:GoogleIcons.PlayArrow}`" (onClick)="pomodoroEngine.OnToggleTimer()"/>
+                  <app-icon-btn [materialIconName]="GoogleIcons.ListAltCheck" (onClick)="markTaskComplete()" [disabled]="!pomodoroEngine.CanTagTaskComplete()"/>
+                  <span>{{pomodoroEngine.DisplayTime()}}</span>
                   <span>/</span>
-                  <span>{{currentPhase() === "FOCUS" ? "25:00" : "05:00" }}</span>
+                  <span>{{pomodoroEngine.CurrentPhase() === "FOCUS" ? "25:00" : "05:00" }}</span>
                 </div>
               </div>
             }
