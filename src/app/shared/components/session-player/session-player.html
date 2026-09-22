@@ -1,1 +1,14 @@
-<p>session-player works!</p>
+<div class="quick-session-player" (click)="pomodoroEngine.OnToggleTimer()">
+  <div class="player-controls-overlay" [class.d-none]="pomodoroEngine.IsClockRunning()" >
+    <span class="material-symbols-outlined">{{pomodoroEngine.IsClockRunning() ? GoogleIcons.Pause : GoogleIcons.PlayArrow}}</span>
+  </div>
+  @if(pomodoroEngine.IsClockRunning()){
+    <div class="d-flex flex-d-col jcon-center align-i-center wh-100">
+      <span class="display-text">{{pomodoroEngine.CurrentPhase()}}</span>
+      <span class="display-time">{{pomodoroEngine.DisplayTime()}}</span>
+      <span class="loading-bar-container">
+        <span class="loading-bar" [style.width]="`${pomodoroEngine.DisplayProgressPercent()}%`"></span>
+      </span>
+    </div>
+  }
+</div>

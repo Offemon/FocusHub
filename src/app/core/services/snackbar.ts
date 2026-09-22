@@ -1,7 +1,9 @@
-import { computed, Service, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { SnackBarMessage, SnackBarState, SnackBarType } from '../models/system.snackbar.design';
 
-@Service()
+@Injectable({
+  providedIn: "root"
+})
 export class SnackbarService {
   private readonly queueState = signal<SnackBarMessage[]>([]);
   public activeSnacks = computed(() => this.queueState());

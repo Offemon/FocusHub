@@ -1,4 +1,11 @@
-import { ApplicationRef, inject, Service, EnvironmentInjector, Type, createComponent } from '@angular/core';
+import {
+  ApplicationRef,
+  inject,
+  EnvironmentInjector,
+  Type,
+  createComponent,
+  Injectable,
+} from '@angular/core';
 import {
   IPayloadContainer,
   ModalChildComponentBase,
@@ -7,7 +14,9 @@ import {
 } from '../models/system.modal.design';
 import { ModalShell } from '../../shared/components/modal-shell/modal-shell';
 
-@Service()
+@Injectable({
+  providedIn: "root"
+})
 export class ModalService {
   private readonly appRef = inject(ApplicationRef);
   private readonly injector = inject(EnvironmentInjector);

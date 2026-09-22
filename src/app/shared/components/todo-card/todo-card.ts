@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, input, InputSignal, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, signal } from '@angular/core';
 import { ToDoTaskDto, UpdateToDoTaskDetailsCommand } from '../../../core/models/todo.model';
 import { RouterLink } from '@angular/router';
 import { GoogleIcons } from '../../../core/models/google.material.icons';
@@ -7,10 +7,11 @@ import { SnackbarService } from '../../../core/services/snackbar';
 import { TodoService } from '../../../core/services/todo.service';
 import { IPayloadContainer, ModalOptions } from '../../../core/models/system.modal.design';
 import { CreateTodoForm } from '../../../features/todo/components/create-todo-form/create-todo-form';
-import {TodoCardGrid} from '../todo-card-grid/todo-card-grid';
+// import {TodoCardGrid} from '../todo-card-grid/todo-card-grid';
 import { IconBtn } from '../icon-btn/icon-btn';
 import {MccConfirm} from '../modal-child-components/mcc-confirm/mcc-confirm';
 import { TooltipDirective } from '../../directives/tooltip.directives';
+import { StringDefaults } from '../../../core/models/system.string.defaults';
 
 @Component({
   selector: 'app-todo-card',
@@ -19,7 +20,7 @@ import { TooltipDirective } from '../../directives/tooltip.directives';
   styleUrl: './todo-card.css',
 })
 export class TodoCard {
-  private readonly parentGridContext = inject(TodoCardGrid, { host: true });
+  // private readonly parentGridContext = inject(TodoCardGrid, { host: true });
   private readonly elementRef = inject(ElementRef);
   private readonly todoService = inject(TodoService);
   private readonly modalService = inject(ModalService);
@@ -60,11 +61,17 @@ export class TodoCard {
     const payload: IPayloadContainer<ToDoTaskDto> = { payload: todoTask };
     const dialog = this.modalService.show(CreateTodoForm, modalOptions, payload);
     dialog.onResult.then((updatedTask: UpdateToDoTaskDetailsCommand) => {
-      this.todoService.updateToDoTask(updatedTask, (response) => {
-        if (response.isSuccess) {
-          this.snackbarService.showSuccess('Task updated successfully!');
-        } else {
-          this.snackbarService.showWarning('Failed to updated task');
+      this.todoService.UpdateToDoTask(updatedTask).subscribe({
+        next: (response) => {
+          if (response.isSuccess) {
+            this.snackbarService.showSuccess('Task updated successfully!');
+          } else {
+            this.snackbarService.showWarning('Failed to updated task');
+          }
+        },
+        error: (err) => {
+            this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
+
         }
       });
     });
@@ -73,11 +80,16 @@ export class TodoCard {
     this.isPopupHidden.set(true);
   }
   public HandlePriorityToggle(): void {
-    this.todoService.toggleToDoTaskPriority(this.todoTaskItem().id, (response) =>{
-      if(response.isSuccess)
-        this.snackbarService.showSuccess("Task's priority has been toggled successfully")
-      else{
-        this.snackbarService.showWarning("Failed to toggle this task's priority.")
+    this.todoService.ToggleToDoTaskPriority(this.todoTaskItem().id).subscribe({
+      next: (response) => {
+        if (response.isSuccess)
+          this.snackbarService.showSuccess("Task's priority has been toggled successfully");
+        else {
+          this.snackbarService.showWarning("Failed to toggle this task's priority.");
+        }
+      },
+      error: (err) => {
+        this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
       }
     });
   }
@@ -94,12 +106,18 @@ export class TodoCard {
     const dialog = this.modalService.show(MccConfirm, modalOpts, mccPayload);
     dialog.onResult.then((response)=>{
       if(response){
-        this.todoService.abandonToDoTask(this.todoTaskItem().id,(response)=>{
-          if(response.isSuccess){
-            this.snackbarService.showInfo("Task has been abandoned.");
-          }
-          else{
-            this.snackbarService.showError(`Failed to abandon task: ${response.errors?.join(", ")}`);
+        this.todoService.AbandonToDoTask(this.todoTaskItem().id).subscribe({
+          next: (response) => {
+            if (response.isSuccess) {
+              this.snackbarService.showInfo('Task has been abandoned.');
+            } else {
+              this.snackbarService.showError(
+                `Failed to abandon task: ${response.errors?.join(', ')}`,
+              );
+            }
+          },
+          error: (err) => {
+            this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
           }
         });
       }

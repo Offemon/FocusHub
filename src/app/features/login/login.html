@@ -8,7 +8,7 @@
     @if(errorMessage()){
       <app-banner [severity]="errorSeverity()" [message]="errorMessage()" [variant]="Variant.Filled"/>
     }
-    <form [formGroup]="loginForm" (ngSubmit)="onAuthenticate()">
+    <form [formGroup]="loginForm" (ngSubmit)="submitLogin$.next()">
       <div class="d-flex flex-d-col jcon-center my-2 gap-1">
         <input type="text" formControlName="email" placeholder="Email">
         <input type="password" formControlName="password" placeholder="Password">

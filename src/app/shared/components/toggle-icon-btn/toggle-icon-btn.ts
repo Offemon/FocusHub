@@ -1,4 +1,4 @@
-import { Component, computed, input, model, output, signal } from '@angular/core';
+import { Component, computed, input, model, output } from '@angular/core';
 import { MaterialIcons } from '../../../core/models/google.material.icons';
 
 export type BooleanKeysOf<T> = {

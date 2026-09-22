@@ -1,20 +1,21 @@
-import { computed, inject, Service, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   CompleteToDoTaskWithSessionCommand,
   CreateToDoTaskCommand,
-  DeleteToDoTaskCommand,
   ToDoTaskDto,
   UpdateToDoTaskDetailsCommand,
 } from '../models/todo.model';
-import { Observable, tap } from 'rxjs';
-import { AuthService } from './auth';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 import { ApiResponse } from '../models/ApiResponse';
+import {ParseProblemDetails} from '../utils/parser.util';
 
-@Service()
+@Injectable({
+  providedIn: 'root',
+})
 export class TodoService {
   private readonly http = inject(HttpClient);
-  private readonly authService = inject(AuthService);
+  // private readonly authService = inject(AuthService);
   private readonly todoListState = signal<ToDoTaskDto[]>([]);
 
   public allToDos = computed(() => this.todoListState());
@@ -22,35 +23,38 @@ export class TodoService {
   public completedToDos = computed(() => this.todoListState().filter((t) => t.isCompleted));
   public totalPendingCount = computed(() => this.pendingToDos().length);
 
-  public fetchAllToDoTasks(): void {
-    this.http.get<ToDoTaskDto[]>('/tasks/active').subscribe({
-      next: (toDoTasks) => {
-        this.todoListState.set(toDoTasks);
-      },
-      error: (err) => console.error('failed to stream PostgreSQL task registres:', err),
-    });
-  }
-  public pendingToDosExcept(taskId: string): ToDoTaskDto[]{
+  // public fetchAllToDoTasks(): void {
+  //   this.http.get<ToDoTaskDto[]>('/tasks/active').subscribe({
+  //     next: (toDoTasks) => {
+  //       this.todoListState.set(toDoTasks);
+  //     },
+  //     error: (err) => console.error('failed to stream PostgreSQL task registers:', err),
+  //   });
+  // }
+  public PendingToDosExcept(taskId: string): ToDoTaskDto[] {
     return this.allToDos()
-      .filter(t => !t.isCompleted && t.id !== taskId)
+      .filter((t) => !t.isCompleted && t.id !== taskId)
       .sort((a, b) => {
-      const dateA = a.dueDate ?? "9999-12-31";
-      const dateB = b.dueDate ?? '9999-12-31';
-      return dateA.localeCompare(dateB);
-    });
+        const dateA = a.dueDate ?? '9999-12-31';
+        const dateB = b.dueDate ?? '9999-12-31';
+        return dateA.localeCompare(dateB);
+      });
   }
-  public createToDoTask(request: CreateToDoTaskCommand): void {
-    this.http.post<ToDoTaskDto>('/tasks', request).subscribe({
-      next: (toDoTask) => {
-        this.todoListState.update((currentToDoCollection) => [...currentToDoCollection, toDoTask]);
-      },
-      error: (err) => {
-        console.error('PostgreSQL task transaction rejected', err);
-      },
-    });
+  public CreateToDoTask(request: CreateToDoTaskCommand): Observable<ApiResponse<ToDoTaskDto>> {
+    return this.http.post<ToDoTaskDto>('/tasks', request).pipe(
+      map((response): ApiResponse<ToDoTaskDto> => {
+        this.todoListState.update((todoList) => [response, ...todoList]);
+        return {
+          isSuccess: true,
+          payload: response,
+        };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<never>> => {
+        return of(ParseProblemDetails(error));
+      }),
+    );
   }
-
-  public incrementSessionCount(taskId: string): void {
+  public IncrementSessionCount(taskId: string): void {
     this.todoListState.update((todoList) =>
       todoList.map((task) => {
         if (task.id === taskId) {
@@ -64,178 +68,149 @@ export class TodoService {
       }),
     );
   }
-  public deleteToDoTask(taskId: string | null, onResult: (response: ApiResponse) => void): void {
-    if (!taskId) return;
-    this.http.delete<void>(`/tasks/${taskId}`).subscribe({
-      next: () => {
-        this.todoListState.update((currentCache) =>
-          currentCache.filter((task) => task.id !== taskId),
-        );
-        onResult({ isSuccess: true });
-      },
-      error: (error) => {
-        const serverErrors = error.error?.errors || [
-          error.message || 'Unknown infrastructure error.',
-        ];
-        onResult({
-          isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
-        });
-      },
-    });
+  public DeleteToDoTask(taskId: string): Observable<ApiResponse<void>> {
+    return this.http.delete<void>(`/tasks/${taskId}`).pipe(
+      map((): ApiResponse<void> => {
+        this.todoListState.update((todoList) => todoList.filter((task) => task.id !== taskId));
+        return { isSuccess: true };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<void>> => {
+        return of(ParseProblemDetails(error));
+      }),
+    );
   }
-  public updateToDoTask(
-    request: UpdateToDoTaskDetailsCommand | null,
-    onResult: (response: ApiResponse) => void,
-  ): void {
-    if (!request) return;
-    this.http.put<void>(`/tasks/${request.taskId}`, request).subscribe({
-      next: () => {
+  public UpdateToDoTask(request: UpdateToDoTaskDetailsCommand): Observable<ApiResponse<void>> {
+    return this.http.put<void>(`/tasks/${request.taskId}`, request).pipe(
+      map((): ApiResponse<void> => {
         this.todoListState.update((todoList) =>
-          todoList.map((task) => {
-            if (task.id === request.taskId) {
+          todoList.map((todo) => {
+            if (todo.id === request.taskId) {
               return {
-                ...task,
+                ...todo,
                 title: request.title,
                 description: request.description,
                 estimatedPomodoros: request.estimatedPomodoros,
                 dueDate: request.dueDate,
                 isPriority: request.isPriority,
-                energyLevel: request.energyLevel
+                energyLevel: request.energyLevel,
               };
             }
-            return task;
+            return todo;
           }),
         );
-        onResult({ isSuccess: true });
-      },
-      error: (err) => {
-        const serverErrors = err.error?.errors || [err.message || 'Unknown infrastructure error.'];
-        onResult({
-          isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
-        });
-      },
-    });
-  }
-  public localUpdateToDoTask(todo: ToDoTaskDto): void{
-    this.todoListState.update(todoList =>
-      todoList.map((task) => {
-        if(task.id === todo.id){
-          return {
-            ...todo
-          }
-        }
-        return task;
-      })
+        return { isSuccess: true };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<void>> => {
+        return of(ParseProblemDetails(error));
+      }),
     );
   }
-  public tagToDoTaskComplete(taskId: string, onResult: (response: ApiResponse) => void): void {
-    this.http.put<void>(`/tasks/${taskId}/complete`, {}).subscribe({
-      next: () => {
-        this.todoListState.update((todoList) =>
-          todoList.map((todo) =>
-            todo.id === taskId
-              ? { ...todo, isCompleted: true, updatedAt: new Date().toISOString() }
-              : todo,
-          ),
-        );
-        onResult({ isSuccess: true });
-      },
-      error: (err) => {
-        const serverErrors = err.error?.errors || [err.message || 'Unknown infrastructure error.'];
-        onResult({
-          isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
-        });
-      },
-    });
-  }
-  public tagToDoTaskWithSessionComplete(
-    taskId: string,
-    sessionDurationMinutes: number,
-    onResult: (response: ApiResponse) => void,
-  ): void {
-    const command: CompleteToDoTaskWithSessionCommand = { durationMinutes: sessionDurationMinutes };
-    this.http.put<void>(`/tasks/${taskId}/complete-with-session`, command).subscribe({
-      next: () => {
-        this.todoListState.update((todoList) =>
-          todoList.map((task) => {
-            if (task.id === taskId) {
-              return {
-                ...task,
-                isCompleted: true,
-                completedPomodoros: task.completedPomodoros + 1,
-              };
-            }
-            return task;
-          }),
-        );
-        onResult({ isSuccess: true });
-      },
-      error: (err) => {
-        const serverErrors = err.error?.error || [err.message || 'Unknown infrastructure error.'];
-        onResult({
-          isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)],
-        });
-      },
-    });
-  }
-  public toggleToDoTaskPriority(taskId: string, onResult: (response: ApiResponse)=> void): void{
-    this.http.put<void>(`/tasks/${taskId}/toggle-priority`,{}).subscribe({
-      next: () => {
-        this.todoListState.update((todoList) =>
-          todoList.map(todo => {
-            if(todo.id === taskId){
-              return{
-                ...todo,
-                isPriority: !todo.isPriority
-              }
-            }
-            return todo;
-          })
-        );
-        onResult({isSuccess: true});
-      },
-      error: (err) => {
-        const serverErrors = err.errors?.error || [err.message || "Unknown Infrastructure error."];
-        onResult({
-          isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
-        });
-      }
-    });
-  }
-  public abandonToDoTask(taskId: string, onResult: (response: ApiResponse)=> void): void{
-    this.http.put<void>(`/tasks/${taskId}/abandon-task`,{}).subscribe({
-      next: () => {
+
+  // public localUpdateToDoTask(todo: ToDoTaskDto): void{
+  //   this.todoListState.update(todoList =>
+  //     todoList.map((task) => {
+  //       if(task.id === todo.id){
+  //         return {
+  //           ...todo
+  //         }
+  //       }
+  //       return task;
+  //     })
+  //   );
+  // }
+  public TagToDoTaskComplete(taskId: string): Observable<ApiResponse<void>> {
+    return this.http.put<void>(`/tasks/${taskId}/complete`, {}).pipe(
+      map((): ApiResponse<void> => {
         this.todoListState.update((todoList) =>
           todoList.map((todo) => {
-            if(todo.id === taskId){
-              return{
+            if (todo.id === taskId) {
+              return {
                 ...todo,
-                isAbandoned: !todo.isAbandoned
-              }
+                isCompleted: true,
+              };
             }
             return todo;
-          })
+          }),
         );
-        onResult({isSuccess: true});
-      },
-      error: (err) => {
-        const serverErrors = err.error?.error || [err.message || 'Unknown infrastructure error.'];
-        onResult({
-          isSuccess: false,
-          errors: Array.isArray(serverErrors) ? serverErrors : [String(serverErrors)]
-        });
-      }
-    });
+        return { isSuccess: true };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<void>> => {
+        return of(ParseProblemDetails(error));
+      }),
+    );
+  }
+  public TagToDoTaskWithSessionComplete(
+    taskId: string,
+    sessionDurationMinutes: number,
+  ): Observable<ApiResponse<void>> {
+    const command: CompleteToDoTaskWithSessionCommand = { durationMinutes: sessionDurationMinutes };
+    return this.http.put<void>(`/tasks/${taskId}/complete-with-session`, command).pipe(
+      map((): ApiResponse<void> => {
+        this.todoListState.update((todoList) =>
+          todoList.map((todo) => {
+            if (todo.id === taskId) {
+              return {
+                ...todo,
+                isCompleted: true,
+                completedPomodoros: todo.completedPomodoros + 1,
+              };
+            }
+            return todo;
+          }),
+        );
+        return { isSuccess: true };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<void>> => {
+        return of(ParseProblemDetails(error));
+      }),
+    );
+  }
+  public ToggleToDoTaskPriority(taskId: string): Observable<ApiResponse<void>> {
+    return this.http.put<void>(`/tasks/${taskId}/toggle-priority`, {}).pipe(
+      map((): ApiResponse<void> => {
+        this.todoListState.update((todoList) =>
+          todoList.map((todo) => {
+            if (todo.id === taskId) {
+              return {
+                ...todo,
+                isPriority: !todo.isPriority,
+              };
+            }
+            return todo;
+          }),
+        );
+        return { isSuccess: true };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<void>> => {
+        return of(ParseProblemDetails(error));
+      }),
+    );
+  }
+  public AbandonToDoTask(taskId: string): Observable<ApiResponse<void>> {
+    return this.http.put<void>(`/tasks/${taskId}/abandon-task`, {}).pipe(
+      map((): ApiResponse<void> => {
+        this.todoListState.update((todoList) =>
+          todoList.map((todo) => {
+            if (todo.id === taskId) {
+              return {
+                ...todo,
+                isAbandoned: true,
+              };
+            }
+            return todo;
+          }),
+        );
+        return { isSuccess: true };
+      }),
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<void>> => {
+        return of(ParseProblemDetails(error));
+      }),
+    );
   }
   public fetchTaskById(taskId: string): Observable<ToDoTaskDto> {
     return this.http.get<ToDoTaskDto>(`/tasks/${taskId}`);
   }
-  public fetchAllTasksStream(): Observable<ToDoTaskDto[]> {
+  public FetchAllTasksStream(): Observable<ToDoTaskDto[]> {
     return this.http.get<ToDoTaskDto[]>('/tasks').pipe(
       tap((tasksFromDb) => {
         this.todoListState.set(tasksFromDb);

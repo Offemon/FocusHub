@@ -1,8 +1,12 @@
 <div>
-  <h2>Quick start</h2>
+  <app-session-player/>
 </div>
 <div class="tasks-container">
-  @for(todo of todoService.allToDos(); track todo.id){
-    <app-todo-card [todoTaskItem]="todo"/>
+  @if(todoService.pendingToDos().length > 0){
+    <app-todo-card-grid>
+      @for(task of todoService.pendingToDos().slice(0,8); track task.id){
+        <app-todo-card [todoTaskItem]="task" />
+      }
+    </app-todo-card-grid>
   }
 </div>

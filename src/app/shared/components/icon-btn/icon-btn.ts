@@ -1,5 +1,5 @@
 import { Component, input, output } from '@angular/core';
-import { GoogleIcons, MaterialIcons } from '../../../core/models/google.material.icons';
+import { MaterialIcons } from '../../../core/models/google.material.icons';
 
 @Component({
   selector: 'app-icon-btn',

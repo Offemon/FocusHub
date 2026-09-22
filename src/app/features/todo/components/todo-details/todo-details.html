@@ -85,9 +85,9 @@
       </div>
     }
     <div class="side-todo-card-list">
-      @if(todoService.pendingToDosExcept(taskId()).length > 0){
+      @if(todoService.PendingToDosExcept(taskId()).length > 0){
         <app-todo-card-grid>
-          @for(task of todoService.pendingToDosExcept(taskId()).slice(0,2); track task.id){
+          @for(task of todoService.PendingToDosExcept(taskId()).slice(0,2); track task.id){
             <app-todo-card [todoTaskItem]="task" />
           }
         </app-todo-card-grid>
@@ -95,9 +95,9 @@
     </div>
   </div>
   <div class="task-page-lower-part">
-      @if(todoService.pendingToDosExcept(taskId()).length > 0){
+      @if(todoService.PendingToDosExcept(taskId()).length > 0){
         <app-todo-card-grid>
-          @for(task of todoService.pendingToDosExcept(taskId()).slice(0,8); track task.id){
+          @for(task of todoService.PendingToDosExcept(taskId()).slice(0,8); track task.id){
             <app-todo-card [todoTaskItem]="task" />
           }
         </app-todo-card-grid>

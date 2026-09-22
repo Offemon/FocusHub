@@ -1,0 +1,22 @@
+<div class="date-time-picker-wrapper d-flex flex-d-col gap-1">
+  <label for="">
+    {{ labelText() }}
+  </label>
+  <div class="picker-input-coupling-strip d-flex gap-1 align-i-center">
+    <input
+      type="date"
+      [disabled]="isDisabled()"
+      [ngModel]="localDate()"
+      [min]="minAvailableDate()"
+      (ngModelChange)="onInputMutated($event, localTime())"
+      class="picker-control-node"
+    >
+    <input
+      type="time"
+      [disabled]=" isDisabled() || !localDate()"
+      [ngModel]="localTime()"
+      (ngModelChange)="onInputMutated(localDate(), $event)"
+      class="picker-control-node"
+    >
+  </div>
+</div>

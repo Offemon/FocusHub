@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TodoService } from '../../../../core/services/todo.service';
 import { DatePipe } from '@angular/common';
@@ -13,12 +13,12 @@ import { IPayloadContainer, ModalOptions } from '../../../../core/models/system.
 import { SessionService } from '../../../../core/services/session.service';
 import { LogPomodoroSessionCommand } from '../../../../core/models/session.model';
 import { SnackbarService } from '../../../../core/services/snackbar';
-import { map, tap } from 'rxjs';
+import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-card-grid';
-import { ToggleIconBtn } from '../../../../shared/components/toggle-icon-btn/toggle-icon-btn';
 import { MccConfirm } from '../../../../shared/components/modal-child-components/mcc-confirm/mcc-confirm';
 import { PomodoroEngine, PomodoroPhase } from '../../../../core/services/pomodoro-engine';
+import { StringDefaults } from '../../../../core/models/system.string.defaults';
 
 
 @Component({
@@ -86,13 +86,17 @@ export class TodoDetails {
     const dialog = this.modal.show(MccConfirm, modalOpts, mccPayload);
     dialog.onResult.then((response) => {
       if (response) {
-        this.todoService.abandonToDoTask(currentTaskInstance.id, (response) => {
-          if (response.isSuccess) {
-            this.snackbarService.showInfo('Task has been abandoned.');
-          } else {
-            this.snackbarService.showError(
-              `Failed to abandon task: ${response.errors?.join(', ')}`,
-            );
+        this.todoService.AbandonToDoTask(currentTaskInstance.id).subscribe({
+          next: (response) => {
+            if(response.isSuccess)
+              this.snackbarService.showInfo('Task has been abandoned.');
+            else
+              this.snackbarService.showWarning(
+                `Failed to abandon task: ${response.errors?.join(', ')}`,
+              );
+          },
+          error: (err) => {
+            this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
           }
         });
       } else {
@@ -111,21 +115,28 @@ export class TodoDetails {
     const payload: IPayloadContainer<ToDoTaskDto> = { payload: currentTaskInstance };
     const dialog = this.modal.show(CreateTodoForm, modalOptions, payload);
     dialog.onResult.then((updatedTask: UpdateToDoTaskDetailsCommand) => {
-      this.todoService.updateToDoTask(updatedTask, (response) => {
-        if (response.isSuccess) {
-          this.snackbarService.showSuccess('Task updated successfully!');
-        } else {
-          this.snackbarService.showWarning('Failed to updated task');
+      this.todoService.UpdateToDoTask(updatedTask).subscribe({
+        next: (response) => {
+          if (response.isSuccess) {
+            this.snackbarService.showSuccess('Task updated successfully!');
+          } else {
+            this.snackbarService.showWarning(`Failed to updated task: ${response.errors?.join(",\n")}`);
+          }
         }
       });
     });
   }
   public handleDeleteTask() {
     const id = this.taskId();
-    this.todoService.deleteToDoTask(id, (response) => {
-      if (response.isSuccess) {
-        console.log('Task Deleted');
-        this.nav.navigate(['/todos']);
+    this.todoService.DeleteToDoTask(id).subscribe({
+      next: (response) => {
+        if(response.isSuccess)
+          this.snackbarService.showSuccess("Task has been deleted.");
+        else
+          this.snackbarService.showWarning(`${response.errors?.join(',\n')}`);
+      },
+      error: (err) => {
+        this.snackbarService.showError(`${StringDefaults}:${err}`);
       }
     });
   }
@@ -158,37 +169,52 @@ export class TodoDetails {
       ToDoTaskId: currentTaskId,
       DurationMinutes: elapsedTime,
     };
-    this.sessionService.logSession(logSessionCommand, (response) => {
-      if (response.isSuccess)
-        this.snackbarService.showSuccess(
-          `Session successfully logged with id: ${response.payload}`,
-        );
-      else {
-        const errorText = response.errors?.join(', ') || 'Failed to log session for this task.';
-        this.snackbarService.showError(errorText);
+    this.sessionService.LogSession(logSessionCommand).subscribe({
+      next: (response) => {
+        if (response.isSuccess)
+          this.snackbarService.showSuccess(
+            `Session successfully logged with id: ${response.payload}`,
+          );
+        else {
+          const errorText = response.errors?.join(', ') || 'Failed to log session for this task.';
+          this.snackbarService.showError(errorText);
+        }
+      },
+      error: (err) => {
+        this.snackbarService.showError(`${StringDefaults}:${err}`);
       }
     });
   }
 
   private completeTask(taskId: string, sessionDuration?: number): void {
     if (sessionDuration) {
-      this.todoService.tagToDoTaskWithSessionComplete(taskId, sessionDuration, (response) => {
-        if (response.isSuccess) {
-          this.snackbarService.showSuccess(
-            'Task has been tagged as completed and a session has been logged!',
-          );
-          this.router.navigate(['/todos']);
-        } else {
-          this.snackbarService.showError('Failed tagging task as completed.');
+      this.todoService.TagToDoTaskWithSessionComplete(taskId, sessionDuration).subscribe({
+        next: async (response) => {
+          if (response.isSuccess) {
+            this.snackbarService.showSuccess(
+              'Task has been tagged as completed and a session has been logged!',
+            );
+            await this.router.navigate(['/todos']);
+          } else {
+            this.snackbarService.showWarning('Failed tagging task as completed.');
+          }
+        },
+        error: (err) => {
+          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`)
         }
       });
     } else {
-      this.todoService.tagToDoTaskComplete(taskId, (response) => {
-        if (response.isSuccess) {
-          this.snackbarService.showSuccess('Task has been tagged as completed!');
-          this.router.navigate(['/todos']);
-        } else {
-          this.snackbarService.showError('Failed tagging task as completed.');
+      this.todoService.TagToDoTaskComplete(taskId).subscribe({
+        next: async (response) => {
+          if (response.isSuccess) {
+            this.snackbarService.showSuccess('Task has been tagged as completed!');
+            await this.router.navigate(['/todos']);
+          } else {
+            this.snackbarService.showError('Failed tagging task as completed.');
+          }
+        },
+        error: (err) => {
+          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`)
         }
       });
     }

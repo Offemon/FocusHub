@@ -11,7 +11,6 @@ import {
   UpdateToDoTaskDetailsCommand,
 } from '../../../../core/models/todo.model';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { form } from '@angular/forms/signals';
 
 export type ToDoFormMode = "CREATE" | "MODIFY";
 @Component({
@@ -105,6 +104,7 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
         energyLevel: Number(formValues.energyLevel) as TaskEnergyLevelType,
         isPriority: formValues.isPriority
       };
+      console.log(updateToDoTaskCommandPayload.dueDate);
       if(this.modalRef){
         this.modalRef.close(updateToDoTaskCommandPayload);
       }

@@ -48,7 +48,7 @@
         }
         .time-remaining-display, .current-phase-display{
           text-align: center;
-          font-family: "Press Start 2P", system-ui;
+          font-family: var(--pixel-font);
           font-weight: 400;
           font-style: normal;
 

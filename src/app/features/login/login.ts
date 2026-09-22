@@ -1,11 +1,12 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {HttpClient} from '@angular/common/http';
-import {Router} from '@angular/router';
+import { Router } from '@angular/router';
 import { Banner } from '../../shared/components/banner/banner';
 import { Severity, SeverityType } from '../../core/models/Severity';
 import { Variant } from '../../core/models/Variant';
-import {AuthService} from "../../core/services/auth";
+import { AuthService, LoginCommand } from '../../core/services/auth';
+import { UserSession } from '../../core/models/auth.model';
+import { exhaustMap, Subject, takeUntil, tap } from 'rxjs';
 
 export interface AuthResponse {
   userId: string;
@@ -19,68 +20,97 @@ export interface AuthResponse {
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class Login {
+export class Login implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
-  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   public isLoading = signal<boolean>(false);
   public errorMessage = signal<string>('');
   public errorSeverity = signal<SeverityType>(`${Severity.Info}`);
 
+  protected readonly submitLogin$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
   public loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
-  public onAuthenticate(): void {
-    if (this.loginForm.invalid) {
-      this.errorSeverity.set(Severity.Error);
-      this.errorMessage.set('Invalid email or password');
-      return;
-    }
-    this.isLoading.set(true);
-    this.errorMessage.set('');
-    this.errorSeverity.set(Severity.Info);
-    const payload = this.loginForm.getRawValue();
-
-    this.http.post<AuthResponse>('/auth/login', payload).subscribe({
-      next: (response) => {
-        const userSessionState = {
-          token: response.token,
-          userId: response.userId,
-          email: response.email,
-          authTimestamp: new Date().getTime(),
-        };
-        // localStorage.setItem('focushub_session', JSON.stringify(userSessionState));
-        this.authService.cacheSession(userSessionState);
-        this.isLoading.set(false);
-        this.router.navigate(['/']);
-      },
-      error: (err: any) => {
-        this.isLoading.set(false);
-        if (err.status === 400 || err.status === 500) {
-          const serverDetail = err.error?.detail;
-          const validationErrors = err.error?.errors;
-
-          if (validationErrors) {
-            const firstErrorKey = Object.keys(validationErrors)[0];
+  public ngOnInit() {
+    this.submitLogin$
+      .pipe(
+        tap(() => {
+          if (this.loginForm.invalid) {
             this.errorSeverity.set(Severity.Error);
-            this.errorMessage.set(`${validationErrors[firstErrorKey]}`);
-          } else if (serverDetail) {
-            this.errorSeverity.set(Severity.Error);
-            this.errorMessage.set(serverDetail);
-          } else {
-            this.errorSeverity.set(Severity.Error);
-            this.errorMessage.set(err.error?.title || 'An unexpected server operation failed.');
+            this.errorMessage.set('Invalid email or password');
+            throw new Error('Form validation tripped');
           }
-        } else {
-          this.errorSeverity.set(Severity.Fatal);
-          this.errorMessage.set('Critical gateway infrastructure timeout. Server offline.');
-        }
-      },
-    });
+          this.isLoading.set(true);
+          this.errorMessage.set('');
+        }),
+        exhaustMap(() => {
+          const credentials: LoginCommand = this.loginForm.getRawValue();
+          return this.authService.LogIn(credentials);
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe({
+        next: async (response) => {
+          if (response.isSuccess && response.payload) {
+            const userSessionState: UserSession = {
+              token: response.payload.token,
+              userId: response.payload.userId,
+              email: response.payload.email,
+              authTimestamp: new Date().getTime(),
+            };
+            this.authService.CacheSession(userSessionState);
+            this.isLoading.set(false);
+            await this.router.navigate(['/']);
+          }
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          this.errorSeverity.set(Severity.Error);
+          this.errorMessage.set(err);
+        },
+      });
   }
+  public ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // public onAuthenticate(): void {
+  //   if (this.loginForm.invalid) {
+  //     this.errorSeverity.set(Severity.Error);
+  //     this.errorMessage.set('Invalid email or password');
+  //     return;
+  //   }
+  //   this.isLoading.set(true);
+  //   this.errorMessage.set('');
+  //   this.errorSeverity.set(Severity.Info);
+  //   const formPayload: LoginCommand = this.loginForm.getRawValue();
+  //
+  //   this.authService.LogIn(formPayload).subscribe({
+  //     next: async (response) => {
+  //       if (response.isSuccess && response.payload) {
+  //         const userSessionState: UserSession = {
+  //           token: response.payload.token,
+  //           userId: response.payload.userId,
+  //           email: response.payload.email,
+  //           authTimestamp: new Date().getTime(),
+  //         };
+  //         this.authService.CacheSession(userSessionState);
+  //         this.isLoading.set(false);
+  //         await this.router.navigate(['/']);
+  //       }
+  //     },
+  //     error: (err) => {
+  //       this.isLoading.set(false);
+  //       this.errorSeverity.set(Severity.Error);
+  //       this.errorMessage.set(err);
+  //     },
+  //   });
+  // }
 
   protected readonly Variant = Variant;
 }

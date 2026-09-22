@@ -1,7 +1,7 @@
 import {
   ComponentRef,
   Directive,
-  ElementRef, Host, HostListener,
+  ElementRef, HostListener,
   inject,
   input,
   ViewContainerRef,

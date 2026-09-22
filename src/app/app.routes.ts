@@ -15,7 +15,8 @@ export const routes: Routes = [
     children:[
       {
         path:'pomodoro',
-        loadComponent: () => import('./features/pomodoro/pomodoro').then((m) => m.Pomodoro)
+        loadComponent: () => import('./features/pomodoro/pomodoro').then((m) => m.Pomodoro),
+        resolve: {cacheHydrated: todoResolver},
       },
       {
         path: 'todos',

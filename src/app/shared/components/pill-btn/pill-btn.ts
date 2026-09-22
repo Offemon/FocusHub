@@ -1,4 +1,4 @@
-import { Component, input, InputSignal, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { MaterialIcons } from '../../../core/models/google.material.icons';
 
 @Component({

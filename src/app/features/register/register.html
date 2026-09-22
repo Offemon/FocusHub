@@ -11,7 +11,7 @@
       <app-banner [severity]="errorSeverity()" [message]="errorMessage()" [variant]="Variant.Filled"/>
     }
     <div class="form-container">
-      <form [formGroup]="registrationForm" (ngSubmit)="onRegister()" >
+      <form [formGroup]="registrationForm" (ngSubmit)="submitForm$.next()" >
         <div class="d-flex flex-d-col gap-1">
           <input type="email" formControlName="email" placeholder="Email" required>
           <input type="password" formControlName="password" placeholder="Password" required>

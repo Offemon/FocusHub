@@ -1,4 +1,5 @@
 import { computed, Injectable, OnDestroy, signal } from '@angular/core';
+import { map, Subject, Subscription, takeUntil, tap, timer } from 'rxjs';
 
 export const PomodoroPhase = {
   Focus: "FOCUS",
@@ -20,6 +21,8 @@ export class PomodoroEngine implements OnDestroy {
   // private readonly focusDuration: number = 1 * 60;
   // private readonly breakDuration: number = 1 * 60;
   // private readonly minFocusDuration: number = 5;
+  private readonly focusStartAudio = new Audio('assets/audio/focus-start.mp3');
+  private readonly breakBellAudio = new Audio('assets/audio/break_bell.mp3');
 
   private readonly currentPhase = signal<PomodoroPhaseType>(PomodoroPhase.Focus);
   private readonly remainingSeconds = signal<number>(this.focusDuration);
@@ -29,7 +32,9 @@ export class PomodoroEngine implements OnDestroy {
   );
   private readonly canTagTaskComplete = signal<boolean>(false);
   private config: TimerConfig | null = null;
-  private timerInstance: any = null;
+
+  private timerSubscription: Subscription | null = null;
+  private readonly destroy$ = new Subject<void>();
 
   private readonly totalCurrentPhaseSeconds = computed(() =>
     this.currentPhase() === PomodoroPhase.Focus ? this.focusDuration : this.breakDuration,
@@ -59,7 +64,6 @@ export class PomodoroEngine implements OnDestroy {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   });
   public readonly DisplayRemainingTime = computed(() => {
-    const total = this.totalCurrentPhaseSeconds();
     const remaining = this.remainingSeconds();
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
@@ -82,25 +86,39 @@ export class PomodoroEngine implements OnDestroy {
       this.startTimer();
     }
   }
-  private startTimer(): void {
-    if (this.timerInstance) clearInterval(this.timerInstance);
+  private startTimer(): void{
+    this.stopTimerSubscription();
     this.isClockRunning.set(true);
     this.config?.onStart();
-    if(this.currentPhase() === PomodoroPhase.Focus){
+    if (this.currentPhase() === PomodoroPhase.Focus) {
       this.ringFocusSound();
-    }
-    else{
+    } else {
       this.ringBreakBell();
     }
-    this.timerInstance = setInterval(() => {
-      if (
-        this.elapsedSeconds() >= this.minFocusDuration &&
-        this.currentPhase() === PomodoroPhase.Focus
+    const startSeconds = this.remainingSeconds();
+    const startTimeStamp = Date.now();
+
+    this.timerSubscription = timer(0, 200)
+      .pipe(
+        map(() => {
+          const secondsElapsed = Math.floor((Date.now() - startTimeStamp) / 1000);
+          return Math.max(0, startSeconds - secondsElapsed);
+        }),
+        tap((newRemainingSeconds) => {
+          this.remainingSeconds.set(newRemainingSeconds);
+          if (
+            this.currentPhase() === PomodoroPhase.Focus &&
+            this.elapsedSeconds() >= this.minFocusDuration
+          )
+            this.canTagTaskComplete.set(true);
+        }),
+        takeUntil(this.destroy$),
       )
-        this.canTagTaskComplete.set(true);
-      if (this.remainingSeconds() > 0) this.remainingSeconds.update((current) => current - 1);
-      else this.phaseComplete();
-    }, 1000);
+      .subscribe({
+        next: (newRemainingSeconds) => {
+          if (newRemainingSeconds === 0) this.phaseComplete();
+        },
+      });
   }
   public ResetTimer() {
     this.PauseTimer();
@@ -109,10 +127,7 @@ export class PomodoroEngine implements OnDestroy {
   }
   public PauseTimer(): void {
     this.isClockRunning.set(false);
-    if (this.timerInstance) {
-      clearInterval(this.timerInstance);
-      this.timerInstance = null;
-    }
+    this.stopTimerSubscription();
   }
   private phaseComplete(): void {
     this.PauseTimer();
@@ -129,24 +144,28 @@ export class PomodoroEngine implements OnDestroy {
     }
     this.startTimer();
   }
+  private stopTimerSubscription(): void{
+    if(this.timerSubscription){
+      this.timerSubscription.unsubscribe();
+      this.timerSubscription = null;
+    }
+  }
   private ringBreakBell(): void {
-    const audio = new Audio();
-    audio.src = 'assets/audio/break_bell.mp3';
-    audio.load();
-    audio.play().catch((error) => {
+    this.breakBellAudio.currentTime = 0;
+    this.breakBellAudio.play().catch((error) => {
       console.log('Audio playback failed', error);
     });
   }
   private ringFocusSound(): void {
-    const audio = new Audio();
-    audio.src = 'assets/audio/focus-start.mp3';
-    audio.load();
-    audio.volume = 0.5;
-    audio.play().catch((error) => {
+    // audio.volume = 0.5;
+    this.focusStartAudio.currentTime = 0;
+    this.focusStartAudio.play().catch((error) => {
       console.log('Audio playback failed', error);
     });
   }
   public ngOnDestroy() {
     this.PauseTimer();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
