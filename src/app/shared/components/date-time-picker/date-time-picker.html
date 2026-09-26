@@ -4,19 +4,27 @@
   </label>
   <div class="picker-input-coupling-strip d-flex gap-1 align-i-center">
     <input
+      #dateInput
       type="date"
       [disabled]="isDisabled()"
-      [ngModel]="localDate()"
+      [value]="localDate()"
       [min]="minAvailableDate()"
-      (ngModelChange)="onInputMutated($event, localTime())"
+      (input)="onInputMutated(dateInput.value, timeInput.value)"
       class="picker-control-node"
     >
     <input
+      #timeInput
       type="time"
       [disabled]=" isDisabled() || !localDate()"
-      [ngModel]="localTime()"
-      (ngModelChange)="onInputMutated(localDate(), $event)"
+      [value]="localTime()"
+      [min]="dynamicMinTime()"
+      (input)="onInputMutated(dateInput.value, timeInput.value)"
       class="picker-control-node"
     >
   </div>
+  @if(isPastTimeInvalid()){
+    <span class="constraint">
+      Scheduling constraint: Deadlines must be set to at least 1 hour into the future.
+    </span>
+  }
 </div>

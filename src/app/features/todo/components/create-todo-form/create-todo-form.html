@@ -1,4 +1,4 @@
-<form [formGroup]="toDoForm" (ngSubmit)="onSubmit()">
+<form [formGroup]="toDoForm" (ngSubmit)="submitForm$.next()">
   <div class="form-input-section">
     <label for="task-name">Task Name</label>
     <input type="text" id="task-name" formControlName="title">
@@ -13,8 +13,9 @@
       <input type="number" id="est-pom-sess-count" formControlName="estimatedPomodoros">
     </div>
     <div class="form-input-section">
-      <label for="due-date">Target Due Date</label>
-      <input type="date" id="due-date" formControlName="dueDate" [min]="minAvailableDate()" >
+<!--      <label for="due-date">Target Due Date</label>-->
+<!--      <input type="date" id="due-date" formControlName="dueDate" [min]="minAvailableDate()" >-->
+      <app-date-time-picker formControlName="dueDate"/>
     </div>
   </div>
   <div class="form-input-section">

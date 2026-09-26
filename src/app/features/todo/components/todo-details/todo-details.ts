@@ -115,6 +115,7 @@ export class TodoDetails {
     const payload: IPayloadContainer<ToDoTaskDto> = { payload: currentTaskInstance };
     const dialog = this.modal.show(CreateTodoForm, modalOptions, payload);
     dialog.onResult.then((updatedTask: UpdateToDoTaskDetailsCommand) => {
+      if(!updatedTask) return;
       this.todoService.UpdateToDoTask(updatedTask).subscribe({
         next: (response) => {
           if (response.isSuccess) {

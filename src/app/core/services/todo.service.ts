@@ -41,12 +41,27 @@ export class TodoService {
       });
   }
   public CreateToDoTask(request: CreateToDoTaskCommand): Observable<ApiResponse<ToDoTaskDto>> {
-    return this.http.post<ToDoTaskDto>('/tasks', request).pipe(
-      map((response): ApiResponse<ToDoTaskDto> => {
-        this.todoListState.update((todoList) => [response, ...todoList]);
+    return this.http.post<string>('/tasks', request).pipe(
+      map((response: string): ApiResponse<ToDoTaskDto> => {
+        const createdTask: ToDoTaskDto = {
+          id: response,
+          title: request.title,
+          description: request.description,
+          isCompleted: false,
+          isAbandoned: false,
+          createdAt: new Date().toISOString(),
+          estimatedPomodoros: request.estimatedPomodoros,
+          completedPomodoros: 0,
+          dueDate: request.dueDate,
+          updatedAt: null,
+          isPriority: request.isPriority,
+          energyLevel: request.energyLevel,
+          modifyCount: 0
+        };
+        this.todoListState.update((todoList) => [createdTask, ...todoList]);
         return {
           isSuccess: true,
-          payload: response,
+          payload: createdTask,
         };
       }),
       catchError((error: HttpErrorResponse): Observable<ApiResponse<never>> => {
@@ -93,6 +108,8 @@ export class TodoService {
                 dueDate: request.dueDate,
                 isPriority: request.isPriority,
                 energyLevel: request.energyLevel,
+                updatedAt: new Date().toISOString(),
+                modifyCount: todo.modifyCount + 1
               };
             }
             return todo;

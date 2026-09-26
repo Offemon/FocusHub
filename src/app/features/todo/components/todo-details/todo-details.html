@@ -8,7 +8,7 @@
 <!--              <span class="percent-display">-->
 <!--                {{Math.floor(progressPercent().valueOf())}}%-->
 <!--              </span>-->
-              @if(!todo.isCompleted){
+              @if(!todo.isCompleted && !todo.isAbandoned){
                 <span class="current-phase-display">
                   {{pomodoroEngine.CurrentPhase()}}
                 </span>
@@ -21,7 +21,12 @@
               }
               @else{
                 <span class="current-phase-display">
-                  Task Complete
+                  @if(todo.isCompleted){
+                    Task Complete
+                  }
+                  @else if(todo.isAbandoned){
+                    Task Abandoned
+                  }
                 </span>
               }
 
@@ -46,15 +51,25 @@
             <h4>{{todo.title}}</h4>
           </div>
           <div class="task-details-actions-container">
-            <span>{{todo.completedPomodoros}} sessions | {{todo.createdAt | date}}</span>
-            @if(!todo.isCompleted){
+            <div class="task-chrono-details">
+              <span>{{todo.completedPomodoros}} sessions | {{todo.createdAt | date: 'medium'}}</span>
+              @if(todo.modifyCount>0){
+                <span>Updated {{todo.modifyCount}} time(s) | Updated at: {{todo.updatedAt | date: 'medium'}}</span>
+              }
+            </div>
+            @if(!todo.isCompleted && !todo.isAbandoned){
               <div class="actions-container d-flex flex-d-row gap-1">
                 <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()"/>
                 <app-pill-btn [btnIcon]="GoogleIcons.Block" btnLabel="Abandon Task" (onClick)="handleAbandon()"/>
               </div>
             }
             @else{
-              <span>Completed at: {{todo.updatedAt | date}}</span>
+              @if(todo.isCompleted){
+                <span>Completed at: {{todo.updatedAt | date: 'medium'}}</span>
+              }
+              @else if(todo.isAbandoned){
+                <span>Abandoned at: {{todo.updatedAt | date: 'medium' }}</span>
+              }
             }
           </div>
           <div class="task-details-description">

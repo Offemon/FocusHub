@@ -11,6 +11,7 @@ export interface ToDoTaskDto{
   isAbandoned: boolean;
   isPriority: boolean;
   energyLevel: TaskEnergyLevelType;
+  modifyCount: number;
 }
 
 export interface CreateToDoTaskCommand {

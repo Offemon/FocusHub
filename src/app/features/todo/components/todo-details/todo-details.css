@@ -107,10 +107,16 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .task-details-actions-container{
-      > span{
-        font-size: 1.25rem;
-        color: var(--text-secondary);
+      .task-chrono-details{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        span{
+          font-size: 1.25rem;
+          color: var(--text-secondary);
+        }
       }
     }
   }

@@ -5,7 +5,6 @@ import { SnackbarComponent } from '../../shared/components/snackbar.component/sn
 import { SnackbarService } from '../../core/services/snackbar';
 import { IconBtn } from '../../shared/components/icon-btn/icon-btn';
 import { GoogleIcons } from '../../core/models/google.material.icons';
-import { ToggleIconBtn } from '../../shared/components/toggle-icon-btn/toggle-icon-btn';
 import { DateTimePicker } from '../../shared/components/date-time-picker/date-time-picker';
 
 @Component({
@@ -16,7 +15,6 @@ import { DateTimePicker } from '../../shared/components/date-time-picker/date-ti
     RouterLink,
     SnackbarComponent,
     IconBtn,
-    ToggleIconBtn,
     DateTimePicker,
   ],
   templateUrl: './dashboard.html',

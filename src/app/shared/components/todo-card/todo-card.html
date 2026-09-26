@@ -8,6 +8,12 @@
           Completed
         </span>
       }
+      @else if (!todo.isCompleted && todo.isAbandoned){
+        <span class="task-status abandoned">
+          <span class="material-symbols-outlined">{{GoogleIcons.HourglassEmpty}}</span>
+          Abandoned
+        </span>
+      }
       @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100) === 0){
         <span class="task-status pending">
           <span class="material-symbols-outlined">{{GoogleIcons.Pending}}</span>
@@ -50,7 +56,7 @@
           Ongoing
         </span>
       }
-      @if(!todo.isCompleted){
+      @if(!todo.isCompleted && !todo.isAbandoned){
         <span class="priority-toggle"><app-icon-btn [materialIconName]="todo.isPriority ? GoogleIcons.CheckBox : GoogleIcons.CheckBoxBlank" (onClick)="HandlePriorityToggle()" Tooltip="Set Priority"/></span>
       }
       <span class="task-com-pom-count">{{todo.completedPomodoros}}</span>
@@ -63,7 +69,7 @@
         </h5>
         <p>{{todo.description}}</p>
       </div>
-      @if(!todo.isCompleted){
+      @if(!todo.isCompleted && !todo.isAbandoned){
         <div class="more-context">
           <span class="material-symbols-outlined" (click)="toggleContextPopup($event)">
             more_vert
