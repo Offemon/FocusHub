@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TodoService } from '../../../../core/services/todo.service';
 import { DatePipe } from '@angular/common';
@@ -15,7 +15,7 @@ import { ModalService } from '../../../../core/services/modal';
 import { CreateTodoForm } from '../create-todo-form/create-todo-form';
 import { IPayloadContainer, ModalOptions } from '../../../../core/models/system.modal.design';
 import { SessionService } from '../../../../core/services/session.service';
-import { LogPomodoroSessionCommand } from '../../../../core/models/session.model';
+import { LogPomodoroSessionCommand, SessionDto } from '../../../../core/models/session.model';
 import { SnackbarService } from '../../../../core/services/snackbar';
 import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -23,6 +23,7 @@ import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-
 import { MccConfirm } from '../../../../shared/components/modal-child-components/mcc-confirm/mcc-confirm';
 import { PomodoroEngine, PomodoroPhase } from '../../../../core/services/pomodoro-engine';
 import { StringDefaults } from '../../../../core/models/system.string.defaults';
+import { ApiResponse } from '../../../../core/models/ApiResponse';
 
 
 @Component({
@@ -43,6 +44,7 @@ export class TodoDetails {
   protected readonly snackbarService = inject(SnackbarService);
   protected readonly nav = inject(Router);
   protected readonly modal = inject(ModalService);
+  protected readonly sessionHistory = signal<SessionDto[]>([]);
   public readonly pomodoroEngine = inject(PomodoroEngine);
 
   protected readonly taskId = toSignal(
@@ -75,6 +77,14 @@ export class TodoDetails {
         this.logSession(this.taskId());
       }
     });
+    const resolvedPayload: ApiResponse<SessionDto[]> = this.route.snapshot.data['sessionsData'];
+    if (!resolvedPayload || !resolvedPayload.isSuccess || !resolvedPayload.payload){
+      console.warn("Zero payload");
+      this.sessionHistory.set([]);
+      return;
+    }
+    console.log(resolvedPayload.isSuccess);
+    this.sessionHistory.set(resolvedPayload.payload);
   }
   public handleAbandon(): void {
     const currentTaskInstance = this.task();

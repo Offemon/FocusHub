@@ -117,15 +117,16 @@
           }
         </app-todo-card-grid>
       }
-<!--      @else{-->
-<!--        <div class="display-no-tasks">-->
-<!--          <i class="material-symbols-outlined">{{GoogleIcons.Celebration}}</i>-->
-<!--          <span>No tasks left! Do you have another in mind? </span> <app-pill-btn [btnIcon]="GoogleIcons.NoteAdd" btnLabel="Create new task"/>-->
-<!--        </div>-->
-<!--      }-->
+
     <div class="todo-sessions-timeline mt-2">
       <h5 class="d-flex flex-d-row jcon-first align-i-center gap-1"><i class="material-symbols-outlined">{{GoogleIcons.Timeline}}</i> Task event timeline</h5>
-
+      <ul>
+        @for(session of sessionHistory(); track session.sessionId){
+            <li>{{session.duration}} minutes - Completed at: {{session.completedAt | date: 'medium'}}</li>
+          } @empty {
+            <li>No sessions yet...</li>
+          }
+      </ul>
     </div>
   </div>
 </div>

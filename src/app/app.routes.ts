@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { todoResolver } from './core/resolvers/todo.resolver';
 import { PomodoroNavigationGuard } from './core/guards/pomodoro-navigation.guard';
+import { sessionResolver } from './core/resolvers/session.resolver';
 
 export const routes: Routes = [
   {
@@ -12,28 +13,30 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
     canActivate: [authGuard],
-    children:[
+    children: [
       {
-        path:'pomodoro',
+        path: 'pomodoro',
         loadComponent: () => import('./features/pomodoro/pomodoro').then((m) => m.Pomodoro),
-        resolve: {cacheHydrated: todoResolver},
+        resolve: { cacheHydrated: todoResolver },
       },
       {
         path: 'todos',
         loadComponent: () => import('./features/todo/todo').then((m) => m.Todo),
-        resolve: {cacheHydrated: todoResolver}
+        resolve: { cacheHydrated: todoResolver },
       },
       {
         path: 'todos/:id',
-        loadComponent: () => import('./features/todo/components/todo-details/todo-details').then((m) => m.TodoDetails),
-        resolve: {cacheHydrated: todoResolver},
-        canDeactivate: [PomodoroNavigationGuard]
+        loadComponent: () =>
+          import('./features/todo/components/todo-details/todo-details').then((m) => m.TodoDetails),
+        resolve: { cacheHydrated: todoResolver, sessionsData: sessionResolver },
+        canDeactivate: [PomodoroNavigationGuard],
       },
       {
         path: 'pomodoro/sessions',
-        loadComponent: () => import('./features/pomodoro/components/sessions/sessions').then((m) => m.Sessions)
-      }
-    ]
+        loadComponent: () =>
+          import('./features/pomodoro/components/sessions/sessions').then((m) => m.Sessions),
+      },
+    ],
   },
   {
     path: 'register',
@@ -42,5 +45,5 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'login',
-  }
+  },
 ];
