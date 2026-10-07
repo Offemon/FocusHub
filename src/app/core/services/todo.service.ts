@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {
   CompleteToDoTaskWithSessionCommand,
   CreateToDoTaskCommand,
+  TaskState,
   ToDoTaskDto,
   UpdateToDoTaskDetailsCommand,
 } from '../models/todo.model';
@@ -19,21 +20,19 @@ export class TodoService {
   private readonly todoListState = signal<ToDoTaskDto[]>([]);
 
   public allToDos = computed(() => this.todoListState());
-  public pendingToDos = computed(() => this.todoListState().filter((t) => !t.isCompleted));
-  public completedToDos = computed(() => this.todoListState().filter((t) => t.isCompleted));
+  public pendingToDos = computed(() =>
+    this.todoListState().filter((t) => t.currentState === TaskState.Active),
+  );
+  public completedToDos = computed(() =>
+    this.todoListState().filter((t) => t.currentState === TaskState.Completed),
+  );
+  public missedToDos = computed(() => this.todoListState().filter((t) => t.currentState === TaskState.Missed));
+  public abandonedToDos = computed(() => this.todoListState().filter(t => t.currentState === TaskState.Abandoned));
   public totalPendingCount = computed(() => this.pendingToDos().length);
 
-  // public fetchAllToDoTasks(): void {
-  //   this.http.get<ToDoTaskDto[]>('/tasks/active').subscribe({
-  //     next: (toDoTasks) => {
-  //       this.todoListState.set(toDoTasks);
-  //     },
-  //     error: (err) => console.error('failed to stream PostgreSQL task registers:', err),
-  //   });
-  // }
   public PendingToDosExcept(taskId: string): ToDoTaskDto[] {
     return this.allToDos()
-      .filter((t) => !t.isCompleted && t.id !== taskId)
+      .filter((t) => t.currentState === TaskState.Active && t.id !== taskId)
       .sort((a, b) => {
         const dateA = a.dueDate ?? '9999-12-31';
         const dateB = b.dueDate ?? '9999-12-31';
@@ -47,8 +46,7 @@ export class TodoService {
           id: response,
           title: request.title,
           description: request.description,
-          isCompleted: false,
-          isAbandoned: false,
+          currentState: TaskState.Active,
           createdAt: new Date().toISOString(),
           estimatedPomodoros: request.estimatedPomodoros,
           completedPomodoros: 0,
@@ -56,7 +54,7 @@ export class TodoService {
           updatedAt: null,
           isPriority: request.isPriority,
           energyLevel: request.energyLevel,
-          modifyCount: 0
+          modifyCount: 0,
         };
         this.todoListState.update((todoList) => [createdTask, ...todoList]);
         return {
@@ -109,7 +107,7 @@ export class TodoService {
                 isPriority: request.isPriority,
                 energyLevel: request.energyLevel,
                 updatedAt: new Date().toISOString(),
-                modifyCount: todo.modifyCount + 1
+                modifyCount: todo.modifyCount + 1,
               };
             }
             return todo;
@@ -123,18 +121,18 @@ export class TodoService {
     );
   }
 
-  // public localUpdateToDoTask(todo: ToDoTaskDto): void{
-  //   this.todoListState.update(todoList =>
-  //     todoList.map((task) => {
-  //       if(task.id === todo.id){
-  //         return {
-  //           ...todo
-  //         }
-  //       }
-  //       return task;
-  //     })
-  //   );
-  // }
+  public localUpdateToDoTask(todo: ToDoTaskDto): void{
+    this.todoListState.update(todoList =>
+      todoList.map((task) => {
+        if(task.id === todo.id){
+          return {
+            ...todo
+          }
+        }
+        return task;
+      })
+    );
+  }
   public TagToDoTaskComplete(taskId: string): Observable<ApiResponse<void>> {
     return this.http.put<void>(`/tasks/${taskId}/complete`, {}).pipe(
       map((): ApiResponse<void> => {

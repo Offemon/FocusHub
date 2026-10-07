@@ -100,7 +100,7 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
               title: formValues.title.trim(),
               description: formValues.description.trim(),
               estimatedPomodoros: Number(formValues.estimatedPomodoros),
-              dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString() : null,
+              dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString().trim() : null,
               energyLevel: Number(formValues.energyLevel) as TaskEnergyLevelType,
               isPriority: formValues.isPriority,
             };
@@ -112,7 +112,7 @@ export class CreateTodoForm extends ModalChildComponentBase<ToDoTaskDto> {
               title: formValues.title.trim(),
               description: formValues.description.trim(),
               estimatedPomodoros: Number(formValues.estimatedPomodoros),
-              dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString() : null,
+              dueDate: formValues.dueDate ? new Date(formValues.dueDate).toISOString().trim() : null,
               energyLevel: Number(formValues.energyLevel) as TaskEnergyLevelType,
               isPriority: formValues.isPriority,
             };

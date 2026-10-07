@@ -8,7 +8,7 @@
 <!--              <span class="percent-display">-->
 <!--                {{Math.floor(progressPercent().valueOf())}}%-->
 <!--              </span>-->
-              @if(!todo.isCompleted && !todo.isAbandoned){
+              @if(todo.currentState === TaskState.Active){
                 <span class="current-phase-display">
                   {{pomodoroEngine.CurrentPhase()}}
                 </span>
@@ -21,10 +21,10 @@
               }
               @else{
                 <span class="current-phase-display">
-                  @if(todo.isCompleted){
+                  @if(todo.currentState === TaskState.Completed){
                     Task Complete
                   }
-                  @else if(todo.isAbandoned){
+                  @else if(todo.currentState === TaskState.Abandoned){
                     Task Abandoned
                   }
                 </span>
@@ -32,7 +32,7 @@
 
             </div>
 <!--            <span class="material-symbols-outlined">Task</span>-->
-            @if(!todo.isCompleted){
+            @if(todo.currentState === TaskState.Active){
               <div class="session-progress-bar-container">
                 <div class="session-progress-bar"
                   [style.width]="`${pomodoroEngine.DisplayProgressPercent()}%`">
@@ -57,17 +57,17 @@
                 <span>Updated {{todo.modifyCount}} time(s) | Updated at: {{todo.updatedAt | date: 'medium'}}</span>
               }
             </div>
-            @if(!todo.isCompleted && !todo.isAbandoned){
+            @if(todo.currentState === TaskState.Active){
               <div class="actions-container d-flex flex-d-row gap-1">
                 <app-pill-btn [btnIcon]="GoogleIcons.Edit" btnLabel="Edit Details" (onClick)="handleModifyTask()"/>
                 <app-pill-btn [btnIcon]="GoogleIcons.Block" btnLabel="Abandon Task" (onClick)="handleAbandon()"/>
               </div>
             }
             @else{
-              @if(todo.isCompleted){
+              @if(todo.currentState === TaskState.Completed){
                 <span>Completed at: {{todo.updatedAt | date: 'medium'}}</span>
               }
-              @else if(todo.isAbandoned){
+              @else if(todo.currentState === TaskState.Abandoned){
                 <span>Abandoned at: {{todo.updatedAt | date: 'medium' }}</span>
               }
             }

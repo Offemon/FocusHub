@@ -4,12 +4,7 @@ import { ApiFailureResponse, ApiResponse } from '../models/ApiResponse';
 import { AuthResponse } from '../../features/login/login';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ParseProblemDetails } from '../utils/parser.util';
-import { UserSession } from '../models/auth.model';
-
-export interface LoginCommand {
-  email: string;
-  password: string;
-}
+import { AuthCommand, UserSession } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -63,7 +58,7 @@ export class AuthService {
     this.sessionState.set(session);
   }
   public LogIn(
-    formPayload: LoginCommand
+    formPayload: AuthCommand
   ): Observable<ApiResponse<AuthResponse> | ApiFailureResponse> {
     return this.http.post<AuthResponse>('/auth/login', formPayload).pipe(
       map((response): ApiResponse<AuthResponse> => {
@@ -77,7 +72,7 @@ export class AuthService {
       }),
     );
   }
-  public Register(registerUserCommand: LoginCommand): Observable<ApiResponse<string>>{
+  public Register(registerUserCommand: AuthCommand): Observable<ApiResponse<string>>{
     return this.http.post<string>('/auth/register', registerUserCommand).pipe(
       map((response):ApiResponse<string> => {
         return {

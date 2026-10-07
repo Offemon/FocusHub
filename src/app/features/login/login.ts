@@ -4,8 +4,8 @@ import { Router } from '@angular/router';
 import { Banner } from '../../shared/components/banner/banner';
 import { Severity, SeverityType } from '../../core/models/Severity';
 import { Variant } from '../../core/models/Variant';
-import { AuthService, LoginCommand } from '../../core/services/auth';
-import { UserSession } from '../../core/models/auth.model';
+import { AuthService } from '../../core/services/auth';
+import { AuthCommand, UserSession } from '../../core/models/auth.model';
 import { exhaustMap, Subject, takeUntil, tap } from 'rxjs';
 
 export interface AuthResponse {
@@ -48,7 +48,10 @@ export class Login implements OnInit, OnDestroy {
           this.errorMessage.set('');
         }),
         exhaustMap(() => {
-          const credentials: LoginCommand = this.loginForm.getRawValue();
+          const credentials: AuthCommand = {
+            email: this.loginForm.getRawValue().email.trim(),
+            password: this.loginForm.getRawValue().password.trim(),
+          };
           return this.authService.LogIn(credentials);
         }),
         takeUntil(this.destroy$),

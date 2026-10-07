@@ -2,61 +2,61 @@
   <article class="todo-card d-flex flex-d-col jcon-first align-i-center">
     <div class="todo-thumbnail-container" [routerLink]="['/todos',todo.id]">
       <i class="material-symbols-outlined text-center">task</i>
-      @if(todo.isCompleted){
+      @if(todo.currentState === TaskState.Completed){
         <span class="task-status completed">
           <span class="material-symbols-outlined">{{GoogleIcons.CheckCircle}}</span>
           Completed
         </span>
       }
-      @else if (!todo.isCompleted && todo.isAbandoned){
+      @else if (todo.currentState === TaskState.Abandoned){
         <span class="task-status abandoned">
           <span class="material-symbols-outlined">{{GoogleIcons.HourglassEmpty}}</span>
           Abandoned
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100) === 0){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100) === 0){
         <span class="task-status pending">
           <span class="material-symbols-outlined">{{GoogleIcons.Pending}}</span>
           Pending
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=10){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=10){
         <span class="task-status ongoing">
           <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader10}}</span>
           Ongoing
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=20){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=20){
         <span class="task-status ongoing">
           <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader20}}</span>
           Ongoing
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=40){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=40){
         <span class="task-status ongoing">
           <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader40}}</span>
           Ongoing
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=60){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=60){
         <span class="task-status ongoing">
           <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader60}}</span>
           Ongoing
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=80){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=80){
         <span class="task-status ongoing">
           <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader80}}</span>
           Ongoing
         </span>
       }
-      @else if (!todo.isCompleted && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=90){
+      @else if (todo.currentState === TaskState.Active && Math.round((todo.completedPomodoros/todo.estimatedPomodoros)*100)<=90){
         <span class="task-status ongoing">
           <span class="material-symbols-outlined">{{GoogleIcons.ClockLoader90}}</span>
           Ongoing
         </span>
       }
-      @if(!todo.isCompleted && !todo.isAbandoned){
+      @if(todo.currentState === TaskState.Active){
         <span class="priority-toggle"><app-icon-btn [materialIconName]="todo.isPriority ? GoogleIcons.CheckBox : GoogleIcons.CheckBoxBlank" (onClick)="HandlePriorityToggle()" Tooltip="Set Priority"/></span>
       }
       <span class="task-com-pom-count">{{todo.completedPomodoros}}</span>
@@ -69,7 +69,7 @@
         </h5>
         <p>{{todo.description}}</p>
       </div>
-      @if(!todo.isCompleted && !todo.isAbandoned){
+      @if(todo.currentState === TaskState.Active){
         <div class="more-context">
           <span class="material-symbols-outlined" (click)="toggleContextPopup($event)">
             more_vert

@@ -1,21 +1,21 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import {AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-// import { HttpClient } from '@angular/common/http';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Severity, SeverityType } from '../../core/models/Severity';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {Banner} from '../../shared/components/banner/banner';
-import {Variant} from '../../core/models/Variant';
+import { Banner } from '../../shared/components/banner/banner';
+import { Variant } from '../../core/models/Variant';
 import { exhaustMap, filter, Subject, Subscription, take, takeUntil, tap, timer } from 'rxjs';
-import {AuthService} from "../../core/services/auth";
+import { AuthService } from '../../core/services/auth';
+import { AuthCommand } from '../../core/models/auth.model';
 
 export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
 
   return password && confirmPassword && password.value === confirmPassword.value
-  ? null:{passwordMismatch : true}
+  ? null:{passwordMismatch : true};
 };
 @Component({
   selector: 'app-register',
@@ -55,7 +55,10 @@ export class Register implements OnInit, OnDestroy {
           return true;
         }),
         exhaustMap(() => {
-          const formData = this.registrationForm.getRawValue();
+          const formData: AuthCommand = {
+            email: this.registrationForm.getRawValue().email.trim(),
+            password: this.registrationForm.getRawValue().password.trim(),
+          };
           return this.authService.Register(formData);
         }),
         takeUntil(this.destroy$)
@@ -121,45 +124,6 @@ export class Register implements OnInit, OnDestroy {
       this.hasSpecial() &&
       this.isConfirmPasswordMatched(),
   );
-
-  // public onRegister = (): void => {
-  //   if (this.registrationForm.invalid || this.isPasswordSecure()) {
-  //     this.errorSeverity.set(Severity.Error);
-  //     this.errorMessage.set('Please fulfill all security criteria before creating an account.');
-  //   }
-  //   this.isLoading.set(true);
-  //   this.errorMessage.set('');
-  //   const formValues = this.registrationForm.getRawValue();
-  //   const registerCommandPayload = {
-  //     email: formValues.email,
-  //     password: formValues.password,
-  //   };
-  //   this.http.post('/auth/register', registerCommandPayload).subscribe({
-  //     next: () => {
-  //       this.isLoading.set(false);
-  //       this.errorSeverity.set(Severity.Success);
-  //       this.errorMessage.set('Registration successful! Redirecting to login page.');
-  //       setTimeout(async () => {
-  //         await this.router.navigate(['/login']);
-  //       }, 3000);
-  //     },
-  //     error: (error) => {
-  //       this.isLoading.set(false);
-  //       this.errorSeverity.set(Severity.Error);
-  //       if (error.status === 400 || error.status === 500) {
-  //         const serverExceptionMessage = error.error?.detail;
-  //         this.errorMessage.set(
-  //           serverExceptionMessage || 'Registration contract validation failed.',
-  //         );
-  //       } else {
-  //         this.errorSeverity.set(Severity.Fatal);
-  //         this.errorMessage.set(
-  //           'Critical authentication gateway timeout. Server infrastructure offline.',
-  //         );
-  //       }
-  //     },
-  //   });
-  // };
   public ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();

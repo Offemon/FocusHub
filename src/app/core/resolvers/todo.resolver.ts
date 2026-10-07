@@ -9,7 +9,7 @@ export const todoResolver: ResolveFn<boolean> = (_route, _state) => {
     return of(true);
   return todoService.FetchAllTasksStream().pipe(
     map((tasksArray) => {
-      return Array.isArray(tasksArray)
+      return Array.isArray(tasksArray);
     })
   );
 }

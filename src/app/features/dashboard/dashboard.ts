@@ -3,9 +3,7 @@ import { AuthService } from '../../core/services/auth';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { SnackbarComponent } from '../../shared/components/snackbar.component/snackbar.component';
 import { SnackbarService } from '../../core/services/snackbar';
-import { IconBtn } from '../../shared/components/icon-btn/icon-btn';
 import { GoogleIcons } from '../../core/models/google.material.icons';
-import { DateTimePicker } from '../../shared/components/date-time-picker/date-time-picker';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,8 +12,6 @@ import { DateTimePicker } from '../../shared/components/date-time-picker/date-ti
     RouterLinkActive,
     RouterLink,
     SnackbarComponent,
-    IconBtn,
-    DateTimePicker,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',

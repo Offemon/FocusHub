@@ -2,7 +2,11 @@ import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TodoService } from '../../../../core/services/todo.service';
 import { DatePipe } from '@angular/common';
-import { ToDoTaskDto, UpdateToDoTaskDetailsCommand } from '../../../../core/models/todo.model';
+import {
+  TaskState,
+  ToDoTaskDto,
+  UpdateToDoTaskDetailsCommand,
+} from '../../../../core/models/todo.model';
 import { PillBtn } from '../../../../shared/components/pill-btn/pill-btn';
 import { GoogleIcons } from '../../../../core/models/google.material.icons';
 import { TodoCard } from '../../../../shared/components/todo-card/todo-card';
@@ -225,4 +229,6 @@ export class TodoDetails {
     this.snackbarService.showWarning(`Session interrupted. Logging eligible progress slot: ${this.pomodoroEngine.DisplayTime()}`);
     this.logSession(this.taskId());
   }
+
+  protected readonly TaskState = TaskState;
 }

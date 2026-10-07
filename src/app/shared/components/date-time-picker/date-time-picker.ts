@@ -64,7 +64,7 @@ export class DateTimePicker implements ControlValueAccessor, OnInit, OnDestroy, 
     }
     return null;
   }
-  public registerOnValidatorChange(fn: { (): void }) {
+  public registerOnValidatorChange(fn: () => void): void {
     this.onValidatorChange = fn;
   }
   public ngOnInit() {

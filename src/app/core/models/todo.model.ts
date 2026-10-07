@@ -2,13 +2,12 @@ export interface ToDoTaskDto{
   id: string;
   title: string;
   description: string | null;
-  isCompleted: boolean;
   createdAt: string;
+  currentState: TaskStateType;
   estimatedPomodoros: number;
   completedPomodoros: number;
   dueDate: string | null;
   updatedAt: string | null;
-  isAbandoned: boolean;
   isPriority: boolean;
   energyLevel: TaskEnergyLevelType;
   modifyCount: number;
@@ -49,3 +48,12 @@ export const TaskEnergyLevel = {
 } as const;
 
 export type TaskEnergyLevelType = typeof TaskEnergyLevel[keyof typeof TaskEnergyLevel];
+
+export const TaskState = {
+  Active: 1,
+  Abandoned: 2,
+  Completed: 3,
+  Missed: 4,
+} as const;
+
+export type TaskStateType = typeof TaskState[keyof typeof TaskState];

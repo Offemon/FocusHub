@@ -1,5 +1,18 @@
-import { Component, ElementRef, HostListener, inject, input, signal } from '@angular/core';
-import { ToDoTaskDto, UpdateToDoTaskDetailsCommand } from '../../../core/models/todo.model';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
+import {
+  TaskState,
+  ToDoTaskDto,
+  UpdateToDoTaskDetailsCommand,
+} from '../../../core/models/todo.model';
 import { RouterLink } from '@angular/router';
 import { GoogleIcons } from '../../../core/models/google.material.icons';
 import { ModalService } from '../../../core/services/modal';
@@ -12,6 +25,7 @@ import { IconBtn } from '../icon-btn/icon-btn';
 import {MccConfirm} from '../modal-child-components/mcc-confirm/mcc-confirm';
 import { TooltipDirective } from '../../directives/tooltip.directives';
 import { StringDefaults } from '../../../core/models/system.string.defaults';
+import { interval, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-todo-card',
@@ -19,7 +33,7 @@ import { StringDefaults } from '../../../core/models/system.string.defaults';
   templateUrl: './todo-card.html',
   styleUrl: './todo-card.css',
 })
-export class TodoCard {
+export class TodoCard implements OnInit, OnDestroy {
   // private readonly parentGridContext = inject(TodoCardGrid, { host: true });
   private readonly elementRef = inject(ElementRef);
   private readonly todoService = inject(TodoService);
@@ -27,8 +41,18 @@ export class TodoCard {
   private readonly snackbarService = inject(SnackbarService);
   public todoTaskItem = input.required<ToDoTaskDto>();
   public isPopupHidden = signal<boolean>(true);
+  private readonly destroy$ = new Subject<void>();
 
   constructor() {}
+  public ngOnInit() {
+    if (this.todoTaskItem().currentState !== TaskState.Active) return;
+    this.checkState();
+    interval(5000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.checkState(),
+      });
+  }
 
   public toggleContextPopup(event: MouseEvent): void {
     event.stopPropagation();
@@ -70,9 +94,8 @@ export class TodoCard {
           }
         },
         error: (err) => {
-            this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
-
-        }
+          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
+        },
       });
     });
   }
@@ -90,22 +113,22 @@ export class TodoCard {
       },
       error: (err) => {
         this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
-      }
+      },
     });
   }
 
-  public HandleAbandon(): void{
+  public HandleAbandon(): void {
     const modalOpts: ModalOptions = {
-      title: "Abandon task?",
+      title: 'Abandon task?',
       closeOnOverlayClick: false,
-      maxWidth: "sm"
-    }
-    const mccPayload: IPayloadContainer<string> ={
-      payload: "Are you sure you want to abandon this task?"
-    }
+      maxWidth: 'sm',
+    };
+    const mccPayload: IPayloadContainer<string> = {
+      payload: 'Are you sure you want to abandon this task?',
+    };
     const dialog = this.modalService.show(MccConfirm, modalOpts, mccPayload);
-    dialog.onResult.then((response)=>{
-      if(response){
+    dialog.onResult.then((response) => {
+      if (response) {
         this.todoService.AbandonToDoTask(this.todoTaskItem().id).subscribe({
           next: (response) => {
             if (response.isSuccess) {
@@ -118,15 +141,45 @@ export class TodoCard {
           },
           error: (err) => {
             this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
-          }
+          },
         });
-      }
-      else{
-        this.snackbarService.showSuccess("Good on you for not abandoning a task!")
+      } else {
+        this.snackbarService.showSuccess('Good on you for not abandoning a task!');
       }
     });
   }
+  private checkState(): void {
+    const task = this.todoTaskItem();
+    if (task.currentState !== TaskState.Active) return;
+    const deadlineStr = task.dueDate;
+    const estimatedPomodoro = task.estimatedPomodoros;
+    const completedPomodoros = task.completedPomodoros;
+    const pomodoroProgress = estimatedPomodoro - completedPomodoros;
+    if (!deadlineStr) return;
+    const deadline = new Date(deadlineStr).getDate();
+    if (deadline <= Date.now() && pomodoroProgress === estimatedPomodoro) {
+      const updatedToDoTask: ToDoTaskDto = {
+        ...task,
+        currentState: TaskState.Abandoned,
+      };
+      this.todoService.localUpdateToDoTask(updatedToDoTask);
+      return;
+    }
+    if (deadline <= Date.now() && pomodoroProgress > 0) {
+      const updatedToDoTask: ToDoTaskDto = {
+        ...task,
+        currentState: TaskState.Missed,
+      };
+      this.todoService.localUpdateToDoTask(updatedToDoTask);
+      return;
+    }
+  }
 
+  public ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
   protected readonly GoogleIcons = GoogleIcons;
   protected readonly Math = Math;
+  protected readonly TaskState = TaskState;
 }
