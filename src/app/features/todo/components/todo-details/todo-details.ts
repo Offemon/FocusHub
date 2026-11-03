@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, Signal, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TodoService } from '../../../../core/services/todo.service';
 import { DatePipe } from '@angular/common';
@@ -9,7 +9,6 @@ import {
 } from '../../../../core/models/todo.model';
 import { PillBtn } from '../../../../shared/components/pill-btn/pill-btn';
 import { GoogleIcons } from '../../../../core/models/google.material.icons';
-import { TodoCard } from '../../../../shared/components/todo-card/todo-card';
 import { IconBtn } from '../../../../shared/components/icon-btn/icon-btn';
 import { ModalService } from '../../../../core/services/modal';
 import { CreateTodoForm } from '../create-todo-form/create-todo-form';
@@ -17,18 +16,22 @@ import { IPayloadContainer, ModalOptions } from '../../../../core/models/system.
 import { SessionService } from '../../../../core/services/session.service';
 import { LogPomodoroSessionCommand, SessionDto } from '../../../../core/models/session.model';
 import { SnackbarService } from '../../../../core/services/snackbar';
-import { map } from 'rxjs';
+import { map, tap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-card-grid';
 import { MccConfirm } from '../../../../shared/components/modal-child-components/mcc-confirm/mcc-confirm';
 import { PomodoroEngine, PomodoroPhase } from '../../../../core/services/pomodoro-engine';
 import { StringDefaults } from '../../../../core/models/system.string.defaults';
-import { ApiResponse } from '../../../../core/models/ApiResponse';
+import { ApiResponse, PagedResult } from '../../../../core/models/ApiResponse';
+import { Banner } from '../../../../shared/components/banner/banner';
+import { Severity } from '../../../../core/models/Severity';
+import { Variant } from '../../../../core/models/Variant';
+import {SessionRowContainer} from '../../../../shared/components/session-row-container/session-row-container';
 
 
 @Component({
   selector: 'app-todo-details',
-  imports: [DatePipe, PillBtn, TodoCard, IconBtn, TodoCardGrid],
+  imports: [DatePipe, PillBtn, IconBtn, TodoCardGrid, Banner, SessionRowContainer],
   providers: [PomodoroEngine],
   templateUrl: './todo-details.html',
   styleUrl: './todo-details.css',
@@ -56,35 +59,83 @@ export class TodoDetails {
     this.todoService.allToDos().find((t) => t.id === this.taskId()),
   );
 
+  private initialTaskSessions: PagedResult<SessionDto> = {
+    items: [],
+    pageNumber: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
+  private initialTasks: PagedResult<ToDoTaskDto> = {
+    items: [],
+    pageNumber: 1,
+    pageSize: 8,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
+  protected readonly resolvedSessions = toSignal(
+    this.route.data.pipe(
+      map((routeData): ApiResponse<PagedResult<SessionDto>> => {
+        if (routeData['sessionsData']) {
+          return routeData['sessionsData'];
+        } else {
+          return { isSuccess: true, payload: this.initialTaskSessions };
+        }
+      }),
+    ),
+    {
+      initialValue: {
+        isSuccess: true,
+        payload: this.initialTaskSessions,
+      } as ApiResponse<PagedResult<SessionDto>>,
+    },
+  );
+  protected readonly resolvedTasks: Signal<ApiResponse<PagedResult<ToDoTaskDto>>> = toSignal(
+    this.route.data.pipe(
+      map((routeData) => {
+        return routeData['liteTodoData'] ?? {isSuccess: true, payload: this.initialTasks};
+      }),
+      tap((response) => {
+        if(response.isSuccess && response.payload){
+          this.todoService.todoListState.set(response.payload.items);
+          this.todoService.hasNextPage.set(response.payload.hasNextPage);
+          this.todoService.pageNumber.set(response.payload.pageNumber);
+        }
+      })
+    ),
+    {
+      initialValue: {
+        isSuccess: true,
+        payload: this.initialTasks,
+      } as ApiResponse<PagedResult<ToDoTaskDto>>
+    },
+  );
   public ngOnInit() {
     this.pomodoroEngine.Initialize({
       onStart: () => {
-        if(this.pomodoroEngine.CurrentPhase() === PomodoroPhase.Focus){
-          this.snackbarService.showInfo("Focus phase started.");
-        }
-        else{
-          this.snackbarService.showInfo("Break phase started.");
+        if (this.pomodoroEngine.CurrentPhase() === PomodoroPhase.Focus) {
+          this.snackbarService.showInfo('Focus phase started.');
+        } else {
+          this.snackbarService.showInfo('Break phase started.');
         }
       },
-      onInterrupted: ()=> {
-        this.snackbarService.showWarning("Focus interrupted.");
+      onInterrupted: () => {
+        this.snackbarService.showWarning('Focus interrupted.');
       },
       onMinimumFocus: () => {
-        this.snackbarService.showWarning(`${this.pomodoroEngine.ElapsedSeconds()} seconds of focus session completed`);
+        this.snackbarService.showWarning(
+          `${this.pomodoroEngine.ElapsedSeconds()} seconds of focus session completed`,
+        );
         this.logSession(this.taskId());
       },
       onSessionComplete: () => {
         this.logSession(this.taskId());
-      }
+      },
     });
-    const resolvedPayload: ApiResponse<SessionDto[]> = this.route.snapshot.data['sessionsData'];
-    if (!resolvedPayload || !resolvedPayload.isSuccess || !resolvedPayload.payload){
-      console.warn("Zero payload");
-      this.sessionHistory.set([]);
-      return;
-    }
-    console.log(resolvedPayload.isSuccess);
-    this.sessionHistory.set(resolvedPayload.payload);
   }
   public handleAbandon(): void {
     const currentTaskInstance = this.task();
@@ -102,8 +153,7 @@ export class TodoDetails {
       if (response) {
         this.todoService.AbandonToDoTask(currentTaskInstance.id).subscribe({
           next: (response) => {
-            if(response.isSuccess)
-              this.snackbarService.showInfo('Task has been abandoned.');
+            if (response.isSuccess) this.snackbarService.showInfo('Task has been abandoned.');
             else
               this.snackbarService.showWarning(
                 `Failed to abandon task: ${response.errors?.join(', ')}`,
@@ -111,7 +161,7 @@ export class TodoDetails {
           },
           error: (err) => {
             this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
-          }
+          },
         });
       } else {
         this.snackbarService.showSuccess('Good on you for not abandoning a task!');
@@ -129,15 +179,17 @@ export class TodoDetails {
     const payload: IPayloadContainer<ToDoTaskDto> = { payload: currentTaskInstance };
     const dialog = this.modal.show(CreateTodoForm, modalOptions, payload);
     dialog.onResult.then((updatedTask: UpdateToDoTaskDetailsCommand) => {
-      if(!updatedTask) return;
+      if (!updatedTask) return;
       this.todoService.UpdateToDoTask(updatedTask).subscribe({
         next: (response) => {
           if (response.isSuccess) {
             this.snackbarService.showSuccess('Task updated successfully!');
           } else {
-            this.snackbarService.showWarning(`Failed to updated task: ${response.errors?.join(",\n")}`);
+            this.snackbarService.showWarning(
+              `Failed to updated task: ${response.errors?.join(',\n')}`,
+            );
           }
-        }
+        },
       });
     });
   }
@@ -145,14 +197,12 @@ export class TodoDetails {
     const id = this.taskId();
     this.todoService.DeleteToDoTask(id).subscribe({
       next: (response) => {
-        if(response.isSuccess)
-          this.snackbarService.showSuccess("Task has been deleted.");
-        else
-          this.snackbarService.showWarning(`${response.errors?.join(',\n')}`);
+        if (response.isSuccess) this.snackbarService.showSuccess('Task has been deleted.');
+        else this.snackbarService.showWarning(`${response.errors?.join(',\n')}`);
       },
       error: (err) => {
         this.snackbarService.showError(`${StringDefaults}:${err}`);
-      }
+      },
     });
   }
   protected markTaskComplete(): void {
@@ -162,7 +212,10 @@ export class TodoDetails {
     const isClockRunning = this.pomodoroEngine.IsClockRunning();
     const currentPhase = this.pomodoroEngine.CurrentPhase();
     if (isClockRunning) {
-      if (elapsedSeconds >= this.pomodoroEngine.MinFocusDuration && currentPhase === PomodoroPhase.Focus) {
+      if (
+        elapsedSeconds >= this.pomodoroEngine.MinFocusDuration &&
+        currentPhase === PomodoroPhase.Focus
+      ) {
         this.completeTask(currentTaskId, elapsedSeconds / 60);
       } else if (
         elapsedSeconds < this.pomodoroEngine.MinFocusDuration &&
@@ -178,7 +231,8 @@ export class TodoDetails {
   }
   private logSession(currentTaskId: string): void {
     const elapsedTime = Math.floor(
-      (this.pomodoroEngine.TotalCurrentPhaseSeconds() - this.pomodoroEngine.RemainingSeconds()) / 60,
+      (this.pomodoroEngine.TotalCurrentPhaseSeconds() - this.pomodoroEngine.RemainingSeconds()) /
+        60,
     );
     const logSessionCommand: LogPomodoroSessionCommand = {
       ToDoTaskId: currentTaskId,
@@ -197,7 +251,7 @@ export class TodoDetails {
       },
       error: (err) => {
         this.snackbarService.showError(`${StringDefaults}:${err}`);
-      }
+      },
     });
   }
 
@@ -215,8 +269,8 @@ export class TodoDetails {
           }
         },
         error: (err) => {
-          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`)
-        }
+          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
+        },
       });
     } else {
       this.todoService.TagToDoTaskComplete(taskId).subscribe({
@@ -229,16 +283,20 @@ export class TodoDetails {
           }
         },
         error: (err) => {
-          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`)
-        }
+          this.snackbarService.showError(`${StringDefaults.UnknownInfraError}: ${err}`);
+        },
       });
     }
   }
-  public EmergencyLogSession(){
+  public EmergencyLogSession() {
     this.pomodoroEngine.PauseTimer();
-    this.snackbarService.showWarning(`Session interrupted. Logging eligible progress slot: ${this.pomodoroEngine.DisplayTime()}`);
+    this.snackbarService.showWarning(
+      `Session interrupted. Logging eligible progress slot: ${this.pomodoroEngine.DisplayTime()}`,
+    );
     this.logSession(this.taskId());
   }
 
   protected readonly TaskState = TaskState;
+  protected readonly Severity = Severity;
+  protected readonly Variant = Variant;
 }

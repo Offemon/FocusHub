@@ -1,1 +1,17 @@
-<p>session-row-container works!</p>
+@if(resolvedSessionsContainer(); as resolvedSessions){
+  @if(resolvedSessions.isSuccess && resolvedSessions.payload){
+  <div class="session-items-container">
+    @for(session of resolvedSessions.payload.items; track session.id){
+      <app-session-row-item [sessionData]="session"/>
+    } @empty {
+      <app-banner message="No sessions logged" [variant]="Variant.Outlined" [severity]="Severity.Info"/>
+    }
+  </div>
+  }
+  @else{
+    <app-banner message="Server error" [variant]="Variant.Outlined" [severity]="Severity.Error"/>
+  }
+}
+@else{
+  <app-banner message="Critical server failure!" [variant]="Variant.Outlined" [severity]="Severity.Fatal"/>
+}

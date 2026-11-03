@@ -99,34 +99,33 @@
         </div>
       </div>
     }
-    <div class="side-todo-card-list">
-      @if(todoService.PendingToDosExcept(taskId()).length > 0){
-        <app-todo-card-grid>
-          @for(task of todoService.PendingToDosExcept(taskId()).slice(0,2); track task.id){
-            <app-todo-card [todoTaskItem]="task" />
-          }
-        </app-todo-card-grid>
-      }
+    <div class="side-task-sessions-list">
+      <h5 class="d-flex flex-d-row jcon-first align-i-center"><i class="material-symbols-outlined">{{GoogleIcons.History}}</i>Task sessions</h5>
+      <app-session-row-container [resolvedSessionsContainer]="resolvedSessions()"/>
     </div>
   </div>
   <div class="task-page-lower-part">
       @if(todoService.PendingToDosExcept(taskId()).length > 0){
-        <app-todo-card-grid>
-          @for(task of todoService.PendingToDosExcept(taskId()).slice(0,8); track task.id){
-            <app-todo-card [todoTaskItem]="task" />
-          }
-        </app-todo-card-grid>
+        <app-todo-card-grid [tasks]="todoService.PendingToDosExcept(taskId()).slice(0,8)"/>
       }
 
     <div class="todo-sessions-timeline mt-2">
       <h5 class="d-flex flex-d-row jcon-first align-i-center gap-1"><i class="material-symbols-outlined">{{GoogleIcons.Timeline}}</i> Task event timeline</h5>
-      <ul>
-        @for(session of sessionHistory(); track session.sessionId){
-            <li>{{session.duration}} minutes - Completed at: {{session.completedAt | date: 'medium'}}</li>
-          } @empty {
-            <li>No sessions yet...</li>
-          }
-      </ul>
+      @if(resolvedSessions(); as resolvedSessions){
+        @if(resolvedSessions.isSuccess && resolvedSessions.payload){
+        <ul>
+          @for(session of resolvedSessions.payload.items; track session.id){
+              <li>{{session.duration}} minutes - Completed at: {{session.completedAt | date: 'medium'}}</li>
+            } @empty {
+              <li>No sessions yet...</li>
+            }
+        </ul>
+        }
+      }
+      @else{
+        <app-banner [severity]="Severity.Error" [variant]="Variant.Outlined" message="Failed to get task sessions."/>
+      }
+
     </div>
   </div>
 </div>

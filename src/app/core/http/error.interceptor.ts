@@ -1,11 +1,11 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, Observable, of } from 'rxjs';
-import { ApiFailureResponse } from '../models/ApiResponse';
+import { ApiResponse } from '../models/ApiResponse';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error:HttpErrorResponse): Observable<any> => {
-      const errorResponse: ApiFailureResponse = {
+      const errorResponse: ApiResponse<never> = {
         isSuccess: false,
         errors: []
       };

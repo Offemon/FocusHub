@@ -14,6 +14,14 @@ export interface ApiFailureResponse{
 }
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiFailureResponse;
 
-
+export interface PagedResult<T> {
+  items : T[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
 
 

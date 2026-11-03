@@ -1,3 +1,36 @@
 <div class="todo-card-grid" [class.compact]="isCompact()">
-  <ng-content select="app-todo-card"></ng-content>
+  @for (task of tasks(); track task.id){
+    <app-todo-card [todoTaskItem]="task"/>
+  } @empty {
+    <app-banner [severity]="Severity.Info" [variant]="Variant.Outlined" message="No tasks created."/>
+  }
+  <footer>
+    @if(virtualized()){
+      @if(hasNextPage()){
+        <button
+          type="button"
+          (click)="loadMore.emit()"
+        >
+          show more tasks
+        </button>
+      }
+    }
+    @else{
+      @if(totalPages() > 1){
+        <nav
+          aria-label="Task backlog navigation"
+        >
+          @for(pageIdx of pageArray(); track pageIdx){
+            <button
+              type="button"
+              [disabled]="pageIdx === currentPage()"
+              (click)="pageChange.emit(pageIdx)"
+            >
+              {{pageIdx}}
+            </button>
+          }
+        </nav>
+      }
+    }
+  </footer>
 </div>

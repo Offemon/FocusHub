@@ -1,15 +1,16 @@
 import { ResolveFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { TodoService } from '../services/todo.service';
-import { map, of } from 'rxjs';
+import { Observable } from 'rxjs';
+import { ApiResponse, PagedResult } from '../models/ApiResponse';
+import { ToDoTaskDto } from '../models/todo.model';
 
-export const todoResolver: ResolveFn<boolean> = (_route, _state) => {
+export const todoResolver: ResolveFn<ApiResponse<PagedResult<ToDoTaskDto>>> = (_route, _state) => {
   const todoService = inject(TodoService);
-  if(todoService.allToDos().length > 0)
-    return of(true);
-  return todoService.FetchAllTasksStream().pipe(
-    map((tasksArray) => {
-      return Array.isArray(tasksArray);
-    })
-  );
-}
+  return todoService.resolveTasks(1, 10);
+};
+
+export const liteTodoResolver: ResolveFn<ApiResponse<PagedResult<ToDoTaskDto>>> = (_route, _state): Observable<ApiResponse<PagedResult<ToDoTaskDto>>> => {
+  const todoService = inject(TodoService);
+  return todoService.resolveActiveTasks(1, 8);
+};

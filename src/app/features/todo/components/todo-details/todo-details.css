@@ -120,12 +120,10 @@
       }
     }
   }
-  .side-todo-card-list{
-    display: grid;
-    justify-content: center;
-    grid-template-columns: var(--todo-card-width);
-    /*justify-content: center;*/
-    gap: 1rem;
+  .side-task-sessions-list{
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
   }
 }
 .task-page-lower-part{

@@ -4,7 +4,7 @@ export interface LogPomodoroSessionCommand {
 }
 
 export interface SessionDto{
-  sessionId: string;
+  id: string;
   taskId: string | null;
   duration: number;
   completedAt: string;

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { todoResolver } from './core/resolvers/todo.resolver';
+import { liteTodoResolver, todoResolver } from './core/resolvers/todo.resolver';
 import { PomodoroNavigationGuard } from './core/guards/pomodoro-navigation.guard';
 import { sessionResolver } from './core/resolvers/session.resolver';
 
@@ -22,13 +22,13 @@ export const routes: Routes = [
       {
         path: 'todos',
         loadComponent: () => import('./features/todo/todo').then((m) => m.Todo),
-        resolve: { cacheHydrated: todoResolver },
+        resolve: { allTodoData: todoResolver },
       },
       {
         path: 'todos/:id',
         loadComponent: () =>
           import('./features/todo/components/todo-details/todo-details').then((m) => m.TodoDetails),
-        resolve: { cacheHydrated: todoResolver, sessionsData: sessionResolver },
+        resolve: { liteTodoData: liteTodoResolver, sessionsData: sessionResolver },
         canDeactivate: [PomodoroNavigationGuard],
       },
       {

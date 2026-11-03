@@ -7,11 +7,17 @@
   <button type="button">Active</button>
   <button type="button">Completed</button>
 </div>
-<app-todo-card-grid>
-  @for(task of todoService.allToDos(); track task.id){
-    <app-todo-card [todoTaskItem]="task" />
+@if(pagedTodoTasks(); as resolvedPagedToDoTasks){
+  @if(resolvedPagedToDoTasks.isSuccess){
+    @if(resolvedPagedToDoTasks.payload && resolvedPagedToDoTasks.payload.items){
+      <app-todo-card-grid [tasks]="resolvedPagedToDoTasks.payload.items" [pageSize]="todoCardGridPageSize"/>
+    }
   }
-  @empty{
-    No tasks created
+  @else{
+    @if(resolvedPagedToDoTasks.errors){
+      <app-banner [severity]="Severity.Error" [variant]="Variant.Outlined" [message]="resolvedPagedToDoTasks.errors[0]"/>
+    } @else {
+      <app-banner [severity]="Severity.Error" [variant]="Variant.Outlined" message="Failed to get response."/>
+    }
   }
-</app-todo-card-grid>
+}

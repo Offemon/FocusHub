@@ -1,19 +1,19 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { LogPomodoroSessionCommand, SessionDto } from '../models/session.model';
-import { ApiResponse } from '../models/ApiResponse';
+import { ApiResponse, PagedResult } from '../models/ApiResponse';
 import {TodoService} from './todo.service';
 import { catchError, map, Observable, of } from 'rxjs';
 import { ParseProblemDetails } from '../utils/parser.util';
 
 @Injectable({
-  providedIn: "root"
+  providedIn: 'root',
 })
 export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly todoService = inject(TodoService);
 
-  public LogSession(command: LogPomodoroSessionCommand): Observable<ApiResponse<string>>{
+  public LogSession(command: LogPomodoroSessionCommand): Observable<ApiResponse<string>> {
     return this.http.post<string>('/sessions/log-session', command).pipe(
       map((response): ApiResponse<string> => {
         this.todoService.IncrementSessionCount(command.ToDoTaskId);
@@ -26,14 +26,31 @@ export class SessionService {
   }
   public FetchTaskSessions(taskId: string): Observable<ApiResponse<SessionDto[]>> {
     return this.http.get<SessionDto[]>(`/sessions/${taskId}`).pipe(
-      map((taskSessions): ApiResponse<SessionDto[]> =>{
+      map((taskSessions): ApiResponse<SessionDto[]> => {
         return {
           isSuccess: true,
-          payload: taskSessions
+          payload: taskSessions,
         };
       }),
       catchError((error: HttpErrorResponse): Observable<ApiResponse<never>> => {
         return of(ParseProblemDetails(error));
+      }),
+    );
+  }
+  public resolveTaskSessions(
+    taskId: string,
+    pageSize: number,
+    pageNumber: number,
+  ): Observable<ApiResponse<PagedResult<SessionDto>>> {
+    const params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+    return this.http.get<PagedResult<SessionDto>>(`/sessions/${taskId}`,{params: params}).pipe(
+      map((response): ApiResponse<PagedResult<SessionDto>> => {
+        return {
+          isSuccess: true,
+          payload: response
+        };
       })
     );
   }
@@ -42,12 +59,12 @@ export class SessionService {
       map((sessions): ApiResponse<SessionDto[]> => {
         return {
           isSuccess: true,
-          payload: sessions
+          payload: sessions,
         };
       }),
-      catchError((error: HttpErrorResponse):Observable<ApiResponse<never>> => {
+      catchError((error: HttpErrorResponse): Observable<ApiResponse<never>> => {
         return of(ParseProblemDetails(error));
-      })
+      }),
     );
   }
   public FetchQuickSessions(): Observable<ApiResponse<SessionDto[]>> {
@@ -55,12 +72,12 @@ export class SessionService {
       map((sessions): ApiResponse<SessionDto[]> => {
         return {
           isSuccess: true,
-          payload: sessions
+          payload: sessions,
         };
       }),
       catchError((error: HttpErrorResponse): Observable<ApiResponse<never>> => {
         return of(ParseProblemDetails(error));
-      })
+      }),
     );
   }
 }
