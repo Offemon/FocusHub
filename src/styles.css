@@ -20,7 +20,18 @@
   --todo-card-width: 324px;
 
   --pixel-font: "Press Start 2P", system-ui;
-}/* You can add global styles to this file, and also import other style files */
+}
+
+::-webkit-scrollbar{
+  width: 8px;
+}
+::-webkit-scrollbar-track{
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb{
+  background: var(--primary);
+  border-radius: 50rem;
+}
 
 *{
   margin: 0;

@@ -9,4 +9,4 @@ export const apiPrefixInterceptor: HttpInterceptorFn = (req, next) => {
     url: `${environment.apiUrl}${req.url}`,
   });
   return next(clonedRequest);
-}
+};

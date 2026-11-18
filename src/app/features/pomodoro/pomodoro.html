@@ -3,10 +3,6 @@
 </div>
 <div class="tasks-container">
   @if(todoService.pendingToDos().length > 0){
-    <app-todo-card-grid>
-      @for(task of todoService.pendingToDos().slice(0,8); track task.id){
-        <app-todo-card [todoTaskItem]="task" />
-      }
-    </app-todo-card-grid>
+    <<app-todo-card-grid [tasks]="todoService.pendingToDos().slice(0,8)"/>
   }
 </div>
