@@ -9,10 +9,11 @@ import { StringDefaults } from '../../core/models/system.string.defaults';
 import { ApiResponse, PagedResult } from '../../core/models/ApiResponse';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { map } from 'rxjs';
 import { Banner } from '../../shared/components/banner/banner';
 import { Severity } from '../../core/models/Severity';
 import { Variant } from '../../core/models/Variant';
+import { getResolvedTasksStream } from '../../core/utils/route-data';
+import { ROUTE_DATA_KEYS } from '../../core/constants/route.constants';
 
 
 @Component({
@@ -28,32 +29,18 @@ export class Todo {
   protected readonly todoService = inject(TodoService);
   protected readonly todoCardGridPageSize: number = 32;
 
-  private initialTasks: PagedResult<ToDoTaskDto> = {
-    items: [],
-    pageNumber: 1,
-    pageSize: 10,
-    totalCount: 0,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  };
-
   protected readonly pagedTodoTasks: Signal<ApiResponse<PagedResult<ToDoTaskDto> | never>> =
     toSignal(
-      this.route.data.pipe(
-        map((routeData) => {
-          if (routeData['allTodoData']) return routeData['allTodoData'];
-          else
-            return {
-              isSuccess: false,
-              error: ['Routing dataset reference lost or offline.'],
-            };
-        }),
+      getResolvedTasksStream(
+        this.route,
+        ROUTE_DATA_KEYS.PAGED_TODOS,
+        this.todoService,
+        this.todoService.initialTasks,
       ),
       {
         initialValue: {
           isSuccess: true,
-          payload: this.initialTasks,
+          payload: this.todoService.initialTasks,
         },
       },
     );

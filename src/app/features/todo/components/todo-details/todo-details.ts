@@ -16,22 +16,23 @@ import { IPayloadContainer, ModalOptions } from '../../../../core/models/system.
 import { SessionService } from '../../../../core/services/session.service';
 import { LogPomodoroSessionCommand, SessionDto } from '../../../../core/models/session.model';
 import { SnackbarService } from '../../../../core/services/snackbar';
-import { map, tap } from 'rxjs';
+import { map } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TodoCardGrid } from '../../../../shared/components/todo-card-grid/todo-card-grid';
 import { MccConfirm } from '../../../../shared/components/modal-child-components/mcc-confirm/mcc-confirm';
 import { PomodoroEngine, PomodoroPhase } from '../../../../core/services/pomodoro-engine';
 import { StringDefaults } from '../../../../core/models/system.string.defaults';
 import { ApiResponse, PagedResult } from '../../../../core/models/ApiResponse';
-import { Banner } from '../../../../shared/components/banner/banner';
 import { Severity } from '../../../../core/models/Severity';
 import { Variant } from '../../../../core/models/Variant';
 import {SessionRowContainer} from '../../../../shared/components/session-row-container/session-row-container';
+import { getResolvedSessionsStream, getResolvedTasksStream } from '../../../../core/utils/route-data';
+import { ROUTE_DATA_KEYS } from '../../../../core/constants/route.constants';
 
 
 @Component({
   selector: 'app-todo-details',
-  imports: [DatePipe, PillBtn, IconBtn, TodoCardGrid, Banner, SessionRowContainer],
+  imports: [DatePipe, PillBtn, IconBtn, TodoCardGrid, SessionRowContainer],
   providers: [PomodoroEngine],
   templateUrl: './todo-details.html',
   styleUrl: './todo-details.css',
@@ -59,59 +60,28 @@ export class TodoDetails {
     this.todoService.allToDos().find((t) => t.id === this.taskId()),
   );
 
-  private initialTaskSessions: PagedResult<SessionDto> = {
-    items: [],
-    pageNumber: 1,
-    pageSize: 10,
-    totalCount: 0,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  };
-  private initialTasks: PagedResult<ToDoTaskDto> = {
-    items: [],
-    pageNumber: 1,
-    pageSize: 8,
-    totalCount: 0,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  };
   protected readonly resolvedSessions = toSignal(
-    this.route.data.pipe(
-      map((routeData): ApiResponse<PagedResult<SessionDto>> => {
-        if (routeData['sessionsData']) {
-          return routeData['sessionsData'];
-        } else {
-          return { isSuccess: true, payload: this.initialTaskSessions };
-        }
-      }),
+    getResolvedSessionsStream(
+      this.route,
+      ROUTE_DATA_KEYS.PAGED_TASK_SESSIONS,
+      this.sessionService.initialTaskSessions,
     ),
     {
       initialValue: {
         isSuccess: true,
-        payload: this.initialTaskSessions,
+        payload: this.sessionService.initialTaskSessions,
       } as ApiResponse<PagedResult<SessionDto>>,
     },
   );
   protected readonly resolvedTasks: Signal<ApiResponse<PagedResult<ToDoTaskDto>>> = toSignal(
-    this.route.data.pipe(
-      map((routeData) => {
-        return routeData['liteTodoData'] ?? {isSuccess: true, payload: this.initialTasks};
-      }),
-      tap((response) => {
-        if(response.isSuccess && response.payload){
-          this.todoService.todoListState.set(response.payload.items);
-          this.todoService.hasNextPage.set(response.payload.hasNextPage);
-          this.todoService.pageNumber.set(response.payload.pageNumber);
-        }
-      })
+    getResolvedTasksStream(
+      this.route,
+      ROUTE_DATA_KEYS.LITE_TODOS,
+      this.todoService,
+      this.todoService.initialTasks,
     ),
     {
-      initialValue: {
-        isSuccess: true,
-        payload: this.initialTasks,
-      } as ApiResponse<PagedResult<ToDoTaskDto>>
+      initialValue: { isSuccess: true, payload: this.todoService.initialTasks },
     },
   );
   public ngOnInit() {

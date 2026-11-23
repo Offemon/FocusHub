@@ -27,6 +27,16 @@ export class TodoService {
     Math.ceil(this.totalCount() / this.totalCount()),
   );
 
+  public initialTasks: PagedResult<ToDoTaskDto> = {
+    items: [],
+    pageNumber: 1,
+    pageSize: 8,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
+
   public allToDos = computed(() => this.todoListState());
   public pendingToDos = computed(() =>
     this.todoListState().filter((t) => t.currentState === TaskState.Active),
@@ -244,32 +254,39 @@ export class TodoService {
       }),
     );
   }
-  public resolveTasks(pageNumber: number, pageSize: number): Observable<ApiResponse<PagedResult<ToDoTaskDto>>> {
+  public resolveTasks(
+    pageNumber: number,
+    pageSize: number,
+  ): Observable<ApiResponse<PagedResult<ToDoTaskDto>>> {
     const params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
       .set('pageSize', pageSize.toString());
     return this.http.get<PagedResult<ToDoTaskDto>>('/tasks', { params: params }).pipe(
-      map((response)=>{
+      map((response) => {
         return {
           isSuccess: true,
-          payload: response
+          payload: response,
         };
-      })
+      }),
     );
   }
-  public resolveActiveTasks(pageNumber: number, pageSize: number): Observable<ApiResponse<PagedResult<ToDoTaskDto>>> {
+  public resolveActiveTasks(
+    pageNumber: number,
+    pageSize: number,
+  ): Observable<ApiResponse<PagedResult<ToDoTaskDto>>> {
     const params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
       .set('pageSize', pageSize.toString());
     return this.http.get<PagedResult<ToDoTaskDto>>('/tasks/active', { params: params }).pipe(
-      map((response)=>{
+      map((response) => {
         return {
           isSuccess: true,
-          payload: response
+          payload: response,
         };
-      })
+      }),
     );
   }
+
   public fetchPagedAllTasks(
     pageNumber: number,
     pageSize: number,

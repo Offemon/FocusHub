@@ -13,6 +13,15 @@ export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly todoService = inject(TodoService);
 
+  public initialTaskSessions: PagedResult<SessionDto> = {
+    items: [],
+    pageNumber: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  };
   public LogSession(command: LogPomodoroSessionCommand): Observable<ApiResponse<string>> {
     return this.http.post<string>('/sessions/log-session', command).pipe(
       map((response): ApiResponse<string> => {
@@ -45,8 +54,24 @@ export class SessionService {
     const params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
       .set('pageSize', pageSize.toString());
-    return this.http.get<PagedResult<SessionDto>>(`/sessions/${taskId}`,{params: params}).pipe(
+    return this.http.get<PagedResult<SessionDto>>(`/sessions/${taskId}`, { params: params }).pipe(
       map((response): ApiResponse<PagedResult<SessionDto>> => {
+        return {
+          isSuccess: true,
+          payload: response,
+        };
+      }),
+    );
+  }
+  public resolveAllSessions(
+    pageSize: number,
+    pageNumber: number
+  ): Observable<ApiResponse<PagedResult<SessionDto>>>{
+    const params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+    return this.http.get<PagedResult<SessionDto>>(`/sessions`, {params: params}).pipe(
+      map((response) => {
         return {
           isSuccess: true,
           payload: response

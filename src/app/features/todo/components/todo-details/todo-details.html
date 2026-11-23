@@ -106,25 +106,11 @@
   </div>
   <div class="task-page-lower-part">
       @if(todoService.PendingToDosExcept(taskId()).length > 0){
-        <app-todo-card-grid [tasks]="todoService.PendingToDosExcept(taskId()).slice(0,8)"/>
+        <app-todo-card-grid [tasks]="todoService.PendingToDosExcept(taskId())"/>
       }
 
     <div class="todo-sessions-timeline mt-2">
       <h5 class="d-flex flex-d-row jcon-first align-i-center gap-1"><i class="material-symbols-outlined">{{GoogleIcons.Timeline}}</i> Task event timeline</h5>
-      @if(resolvedSessions(); as resolvedSessions){
-        @if(resolvedSessions.isSuccess && resolvedSessions.payload){
-        <ul>
-          @for(session of resolvedSessions.payload.items; track session.id){
-              <li>{{session.duration}} minutes - Completed at: {{session.completedAt | date: 'medium'}}</li>
-            } @empty {
-              <li>No sessions yet...</li>
-            }
-        </ul>
-        }
-      }
-      @else{
-        <app-banner [severity]="Severity.Error" [variant]="Variant.Outlined" message="Failed to get task sessions."/>
-      }
 
     </div>
   </div>
